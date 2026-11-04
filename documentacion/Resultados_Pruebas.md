@@ -9,7 +9,7 @@ Fecha: 4 de noviembre de 2026. Autor: Erian Badilla Fallas.
 | Pruebas de API con Express y MySQL real | 16 aprobadas, 0 fallidas |
 | Recorridos de interfaz en Chromium | 11 aprobados, 0 errores JavaScript; imágenes y fuentes sin respuestas de error |
 | Colección Postman ejecutada con Newman | 38 peticiones y 38 comprobaciones aprobadas, 0 fallidas |
-| React con Vite | Compilación correcta, 47 módulos |
+| React con Vite | Compilación correcta, 49 módulos |
 | Modelo relacional | 6 tablas, 5 claves foráneas, restricciones de unicidad y CHECK |
 | Documento y diagrama | Word de 2 páginas inspeccionado; draw.io editable con 2 pestañas |
 
@@ -50,7 +50,21 @@ Las pruebas se ejecutaron con Node.js 24.22.1 y una instancia MySQL aislada con 
 
 La interfaz renovada se comprobó con MySQL 8.0.46 y fotografías locales reales de referencia. Se inspeccionaron la portada y el catálogo a 1440 píxeles de ancho, el catálogo a 1024 píxeles y las vistas móviles a 390 píxeles. Las imágenes y fuentes cargaron sin respuestas de error. Se validó el filtro por categoría, la búsqueda, la alternancia tarjetas/tabla y el acceso a una categoría desde la portada.
 
-Las pruebas de los formularios incluyeron las seis entidades, confirmación y cancelación del borrado, conflictos por relaciones y ventas con varios productos. La compilación React con Vite transformó 47 módulos. El cambio visual conserva el backend MySQL y sus rutas HTTP.
+Las pruebas de los formularios incluyeron las seis entidades, confirmación y cancelación del borrado, conflictos por relaciones y ventas con varios productos. La compilación React con Vite transformó 49 módulos. El cambio visual conserva el backend MySQL y sus rutas HTTP.
+
+## Aplicación del logo esmeralda y oro
+
+El logo aprobado conserva el grano ovalado con división curva y utiliza esmeralda pulida con bordes dorados. Se prepararon PNG con transparencia para el logo horizontal y el emblema. El menú, la cabecera, el sello de portada, el pie y el favicon usan estos recursos locales.
+
+Se ejecutaron cinco comprobaciones específicas con Chromium, Express y una instancia aislada MySQL 8.0.46:
+
+1. Logo horizontal en menú y pie; emblema en cabecera y portada, cargados correctamente.
+2. Favicon PNG disponible con la ruta del emblema aprobado.
+3. Marca visible y sin desbordamiento en las seis pantallas de gestión.
+4. El logo del pie vuelve al inicio.
+5. Logo y emblema adaptados a móvil; menú abre y el logo lo cierra al volver al inicio.
+
+Resultado: cinco aprobadas, sin errores JavaScript ni respuestas de error de los recursos de marca. La compilación actual transformó 49 módulos. Se inspeccionaron las vistas de escritorio y móvil; el backend no cambió en esta actualización. Las pruebas de API, Newman y los once recorridos completos de interfaz descritos arriba corresponden a la revisión funcional anterior del mismo proyecto.
 
 ## Cómo repetir las pruebas
 

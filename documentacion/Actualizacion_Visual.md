@@ -1,6 +1,6 @@
 # Actualización visual de Café Nube
 
-Esta entrega actualiza el frontend del proyecto MySQL que ya está funcionando. Incluye portada fotográfica, una paleta verde esmeralda con dorado y naranja, tipografías locales Jost y Cormorant Garamond, un catálogo con fotografías reales y filtros por categoría.
+Esta entrega actualiza el frontend del proyecto MySQL que ya está funcionando e integra el logo esmeralda con bordes dorados que aprobaste. Incluye portada fotográfica, una paleta verde esmeralda con dorado y naranja, tipografías locales Jost y Cormorant Garamond, un catálogo con fotografías reales y filtros por categoría.
 
 ## Instalar en tu proyecto actual
 
@@ -19,6 +19,15 @@ Abre http://localhost:5173. Si la pestaña estaba abierta, recarga con Ctrl+F5.
 La conexión configurada en `backend/.env`, incluida tu base `cafenube`, se conserva. Esta actualización se aplica al frontend; no necesita crear tablas ni ejecutar otra vez `npm run db:setup`. Tampoco agrega dependencias npm.
 
 Si estabas ejecutando la versión compilada, usa `npm run build` y luego `npm start` para actualizarla.
+
+## Logo esmeralda y oro
+
+El logo se usa en el menú lateral y el pie de página. Su emblema aparece en la cabecera, el sello de la portada y el icono de la pestaña del navegador. Los dos PNG con fondo transparente también están incluidos para reutilizarlos:
+
+- `frontend/public/branding/cafe-nube-esmeralda-logo.png`: logo horizontal de 2172 × 724 píxeles.
+- `frontend/public/branding/cafe-nube-esmeralda-icono.png`: emblema de 1254 × 1254 píxeles.
+
+El componente `frontend/src/components/BrandLogo.jsx` comparte las variantes y `frontend/src/styles/logo.css` adapta sus tamaños a escritorio y móvil. Los PNG se prepararon con generación y edición de imagen a partir de la propuesta elegida; conservan transparencia real.
 
 ## Qué incluye
 

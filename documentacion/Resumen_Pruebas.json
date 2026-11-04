@@ -59,7 +59,7 @@
   },
   "compilacion": {
     "resultado": "correcto",
-    "modulos": 47
+    "modulos": 49
   },
   "modelo": {
     "tablas": 6,
@@ -82,5 +82,19 @@
       1024,
       390
     ]
+  },
+  "marca_esmeralda_oro": {
+    "aprobadas": 5,
+    "checks": [
+      "Logo horizontal en menú y pie; emblema en cabecera y portada, cargados correctamente",
+      "Favicon PNG disponible con la ruta del emblema aprobado",
+      "Marca visible y sin desbordamiento en las seis pantallas de gestión",
+      "El logo del pie vuelve al inicio",
+      "Logo y emblema adaptados a móvil; menú abre y el logo lo cierra al volver al inicio"
+    ],
+    "jsErrors": [],
+    "assetErrors": [],
+    "motor_en_revision": "MySQL 8.0.46",
+    "nota": "Comprobaciones nuevas de marca; los resultados de API, Newman e interfaz general se conservan de la revisión funcional anterior."
   }
 }

@@ -6,7 +6,7 @@ El enunciado exige al menos tres entidades y permite elegir la base de datos. Es
 
 ## Presentación visual
 
-La interfaz utiliza verde esmeralda, crema, dorado y naranja, títulos Cormorant Garamond y texto Jost. La portada, las categorías y el catálogo usan fotografías reales de referencia guardadas localmente, con fuentes y licencias en `frontend/public/`. El catálogo permite alternar tarjetas y tabla, buscar y filtrar por categoría. Los formularios mantienen sus operaciones contra la API MySQL.
+La interfaz utiliza verde esmeralda, crema, dorado y naranja, títulos Cormorant Garamond y texto Jost. El logo aprobado de esmeralda y oro se integra mediante `BrandLogo.jsx`, con PNG transparentes en `frontend/public/branding/` y un favicon con su emblema. La portada, las categorías y el catálogo usan fotografías reales de referencia guardadas localmente, con fuentes y licencias en `frontend/public/`. El catálogo permite alternar tarjetas y tabla, buscar y filtrar por categoría. Los formularios mantienen sus operaciones contra la API MySQL.
 
 La guía para aplicar únicamente estos cambios a una instalación que ya funciona está en `documentacion/Actualizacion_Visual.md`. Las fotografías se asocian por nombre desde `frontend/src/utils/productMedia.js`; los productos sin una coincidencia usan una foto de granos de café. No se agrega una columna de imagen a MySQL ni un sistema de subida de archivos.
 
