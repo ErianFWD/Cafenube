@@ -1,0 +1,1053 @@
+{
+  "info": {
+    "name": "Café Nube - CRUD de 6 entidades",
+    "description": "Ejecutar contra la base de demostración con SEED_DEMO=true. Las carpetas crean y eliminan registros temporales propios; conservan los datos iniciales. El método y productos con ID 1 y 2 deben seguir disponibles. Ejecutar las carpetas en orden. Las pruebas de validación esperan errores controlados.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001/api"
+    },
+    {
+      "key": "categoria_prueba",
+      "value": ""
+    },
+    {
+      "key": "producto_prueba",
+      "value": ""
+    },
+    {
+      "key": "cliente_prueba",
+      "value": ""
+    },
+    {
+      "key": "metodo_prueba",
+      "value": ""
+    },
+    {
+      "key": "venta_prueba",
+      "value": ""
+    },
+    {
+      "key": "venta_detalles",
+      "value": ""
+    },
+    {
+      "key": "detalle_prueba",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "00 Salud y resumen",
+      "item": [
+        {
+          "name": "Estado del servidor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/salud",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Resumen de la cafetería",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/resumen",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 Categorías",
+      "item": [
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/categorias",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Categoría Postman\",\n  \"descripcion\": \"Dato temporal de prueba\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 201\", () => pm.response.to.have.status(201));",
+                  "const registro = pm.response.json();",
+                  "pm.collectionVariables.set(\"categoria_prueba\", registro.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/categorias",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver uno",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/categorias/{{categoria_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/categorias/{{categoria_prueba}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Categoría Postman editada\",\n  \"descripcion\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar el registro de prueba",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/categorias/{{categoria_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Productos",
+      "item": [
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/productos",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Producto Postman\",\n  \"categoria_id\": 1,\n  \"precio_centimos\": 175000,\n  \"descripcion\": \"Dato ficticio\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 201\", () => pm.response.to.have.status(201));",
+                  "const registro = pm.response.json();",
+                  "pm.collectionVariables.set(\"producto_prueba\", registro.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/productos",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver uno",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/productos/{{producto_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/productos/{{producto_prueba}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Producto Postman editado\",\n  \"categoria_id\": 1,\n  \"precio_centimos\": 180000,\n  \"descripcion\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar el registro de prueba",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/productos/{{producto_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Clientes",
+      "item": [
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/clientes",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cliente Postman\",\n  \"correo\": \"postman@example.test\",\n  \"telefono\": \"8888-4567\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 201\", () => pm.response.to.have.status(201));",
+                  "const registro = pm.response.json();",
+                  "pm.collectionVariables.set(\"cliente_prueba\", registro.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/clientes",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver uno",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/clientes/{{cliente_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/clientes/{{cliente_prueba}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cliente Postman editado\",\n  \"correo\": \"postman-editado@example.test\",\n  \"telefono\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar el registro de prueba",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/clientes/{{cliente_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Métodos de pago",
+      "item": [
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/metodos-pago",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Método Postman\",\n  \"descripcion\": \"Temporal\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 201\", () => pm.response.to.have.status(201));",
+                  "const registro = pm.response.json();",
+                  "pm.collectionVariables.set(\"metodo_prueba\", registro.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/metodos-pago",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver uno",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/metodos-pago/{{metodo_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/metodos-pago/{{metodo_prueba}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Método Postman editado\",\n  \"descripcion\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar el registro de prueba",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/metodos-pago/{{metodo_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 Ventas",
+      "item": [
+        {
+          "name": "Crear venta con dos productos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/ventas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": null,\n  \"metodo_pago_id\": 1,\n  \"observaciones\": \"Venta ficticia de Postman\",\n  \"detalles\": [\n    {\n      \"producto_id\": 1,\n      \"cantidad\": 1\n    },\n    {\n      \"producto_id\": 2,\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 201\", () => pm.response.to.have.status(201));",
+                  "const registro = pm.response.json();",
+                  "pm.collectionVariables.set(\"venta_prueba\", registro.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar ventas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/ventas",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver venta y sus detalles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/ventas/{{venta_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar venta",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/ventas/{{venta_prueba}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": null,\n  \"metodo_pago_id\": 1,\n  \"observaciones\": \"Venta actualizada\",\n  \"detalles\": [\n    {\n      \"producto_id\": 1,\n      \"cantidad\": 2\n    },\n    {\n      \"producto_id\": 2,\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar venta de prueba y sus detalles",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/ventas/{{venta_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 Detalles de ventas",
+      "item": [
+        {
+          "name": "Preparar venta temporal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/ventas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": null,\n  \"metodo_pago_id\": 1,\n  \"detalles\": [\n    {\n      \"producto_id\": 1,\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 201\", () => pm.response.to.have.status(201));",
+                  "const registro = pm.response.json();",
+                  "pm.collectionVariables.set(\"venta_detalles\", registro.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear segundo producto en la venta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/detalle-ventas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"venta_id\": {{venta_detalles}},\n  \"producto_id\": 2,\n  \"cantidad\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 201\", () => pm.response.to.have.status(201));",
+                  "const registro = pm.response.json();",
+                  "pm.collectionVariables.set(\"detalle_prueba\", registro.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar detalles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/detalle-ventas",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver detalle",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/detalle-ventas/{{detalle_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar cantidad",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/detalle-ventas/{{detalle_prueba}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"producto_id\": 2,\n  \"cantidad\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar segundo producto",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/detalle-ventas/{{detalle_prueba}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar venta temporal",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/ventas/{{venta_detalles}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 Validaciones esperadas",
+      "item": [
+        {
+          "name": "ID inválido 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/productos/0",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro inexistente 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/productos/999999",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Producto con precio inválido 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/productos",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Inválido\",\n  \"categoria_id\": 1,\n  \"precio_centimos\": -100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Categoría relacionada no se elimina 409",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/categorias/1",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

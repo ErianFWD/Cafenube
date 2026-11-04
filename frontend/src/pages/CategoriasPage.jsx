@@ -1,0 +1,5 @@
+import ResourcePage from '../components/ResourcePage.jsx';
+import Icon from '../components/Icon.jsx';
+import { money, initials } from '../utils/format.js';
+const config = {path:'/categorias',title:'Categorías',description:'Organiza el menú para encontrar cada producto con facilidad.',newLabel:'Nueva categoría',editTitle:'Editar categoría',listTitle:'Categorías del menú',label:'categorías',columns:[{key:'id',label:'Código',render:r=><span className="row-code">#{String(r.id).padStart(3,'0')}</span>},{key:'nombre',label:'Nombre',render:r=><strong>{r.nombre}</strong>},{key:'descripcion',label:'Descripción'}],fields:[{name:'nombre',label:'Nombre',required:true,minLength:2,maxLength:80,placeholder:'Ej. Café de especialidad',wide:true},{name:'descripcion',label:'Descripción',type:'textarea',placeholder:'Describe los productos de esta categoría.',wide:true}],note:'Las categorías con productos asociados se conservan hasta retirar esas relaciones.'};
+export default function CategoriasPage() { return <ResourcePage config={config} />; }

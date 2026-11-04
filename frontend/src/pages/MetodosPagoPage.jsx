@@ -1,0 +1,5 @@
+import ResourcePage from '../components/ResourcePage.jsx';
+import Icon from '../components/Icon.jsx';
+import { money, initials } from '../utils/format.js';
+const config = {path:'/metodos-pago',title:'Métodos de pago',description:'Define las formas de pago que registras en tu cafetería.',newLabel:'Nuevo método de pago',editTitle:'Editar método de pago',listTitle:'Formas de pago disponibles',label:'métodos de pago',columns:[{key:'id',label:'Código',render:r=><span className="row-code">#{String(r.id).padStart(3,'0')}</span>},{key:'nombre',label:'Método',render:r=><div className="person-cell"><span className="product-icon"><Icon name="card" size={22}/></span><strong>{r.nombre}</strong></div>},{key:'descripcion',label:'Descripción'}],fields:[{name:'nombre',label:'Nombre',required:true,minLength:2,maxLength:80,placeholder:'Ej. SINPE Móvil',wide:true},{name:'descripcion',label:'Descripción',type:'textarea',placeholder:'Información para identificar esta forma de pago.',wide:true}],note:'Los métodos utilizados en ventas mantienen su relación con el historial.'};
+export default function MetodosPagoPage() { return <ResourcePage config={config} />; }

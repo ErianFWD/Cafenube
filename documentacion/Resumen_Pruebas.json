@@ -1,0 +1,66 @@
+{
+  "fecha": "2026-11-04",
+  "node": "24.22.1",
+  "api": {
+    "total": 14,
+    "aprobadas": 14,
+    "fallidas": 0,
+    "pruebas": [
+      "el esquema implementa seis tablas con FK y datos de ejemplo íntegros",
+      "CRUD completo por HTTP de categorías, productos, clientes y métodos de pago",
+      "ventas y detalles tienen CRUD, totales calculados y borrado conjunto",
+      "los seis recursos conservan 404 para GET, PUT y DELETE de un ID inexistente",
+      "validaciones rechazan tipos, nulos obligatorios, IDs, campos extra y precios inválidos",
+      "UNICIDAD y FK rechazan duplicados o relaciones inválidas",
+      "una venta inválida revierte cabecera y detalles en la misma transacción",
+      "ventas vacías, cantidades inválidas y productos repetidos no se aceptan",
+      "precios históricos y edición atómica de ventas conservan los registros previos",
+      "CORS permite los orígenes declarados y responde preflight sin autenticación",
+      "JSON inválido, cuerpo excesivo y ruta desconocida dan respuestas controladas",
+      "las consultas parametrizadas conservan una entrada de texto sin ejecutarla como SQL",
+      "la persistencia sobre archivo sobrevive reinicios sin resembrar registros borrados",
+      "búsqueda y paginación tienen límites y orden determinista"
+    ]
+  },
+  "interfaz": {
+    "passed": 9,
+    "checks": [
+      "Dashboard conectado a SQLite y sin desbordamiento de página",
+      "Producto: crear, consultar, editar, cancelar borrado y eliminar",
+      "Cliente: crear, editar datos opcionales y eliminar",
+      "Categoría y método de pago: CRUD desde los formularios",
+      "Eliminar una categoría relacionada muestra el conflicto y mantiene el diálogo",
+      "Venta: crear dos líneas, ver detalle, editar cantidad y eliminar",
+      "Detalle de venta: crear, editar cantidad y eliminar desde su pantalla",
+      "Vista móvil: menú y navegación sin desbordamiento horizontal",
+      "Ruta desconocida y regreso al inicio"
+    ],
+    "jsErrors": [],
+    "newmanExit": 0
+  },
+  "newman": {
+    "version": "6",
+    "peticiones": {
+      "total": 38,
+      "pending": 0,
+      "failed": 0
+    },
+    "comprobaciones": {
+      "total": 38,
+      "pending": 0,
+      "failed": 0
+    },
+    "fallos": []
+  },
+  "compilacion": {
+    "herramienta": "Vite 8.3.5",
+    "resultado": "correcta",
+    "modulos": 43
+  },
+  "modelo": {
+    "motor": "SQLite",
+    "tablas": 6,
+    "integridad": "ok",
+    "paginas_drawio": 2
+  }
+}
