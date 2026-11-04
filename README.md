@@ -4,6 +4,12 @@ Sistema de gestión de cafetería desarrollado para el Mini Proyecto 1 Día 1 de
 
 El enunciado exige al menos tres entidades y permite elegir la base de datos. Este proyecto utiliza **seis tablas** según la petición del usuario, Node.js con Express, React con Vite y MySQL. Se respeta la indicación de trabajar sin login, registro, tokens ni roles. No se incluyen rutas privadas.
 
+## Presentación visual
+
+La interfaz utiliza verde esmeralda, crema, dorado y naranja, títulos Cormorant Garamond y texto Jost. La portada, las categorías y el catálogo usan fotografías reales de referencia guardadas localmente, con fuentes y licencias en `frontend/public/`. El catálogo permite alternar tarjetas y tabla, buscar y filtrar por categoría. Los formularios mantienen sus operaciones contra la API MySQL.
+
+La guía para aplicar únicamente estos cambios a una instalación que ya funciona está en `documentacion/Actualizacion_Visual.md`. Las fotografías se asocian por nombre desde `frontend/src/utils/productMedia.js`; los productos sin una coincidencia usan una foto de granos de café. No se agrega una columna de imagen a MySQL ni un sistema de subida de archivos.
+
 ## Iniciar el proyecto
 
 Requisitos: **Node.js 24 LTS** y **MySQL Server 8.0.16 o posterior** (recomendado MySQL 8.4). MySQL Workbench sirve para administrar el servidor; el servicio MySQL debe estar encendido.

@@ -7,9 +7,9 @@ Fecha: 4 de noviembre de 2026. Autor: Erian Badilla Fallas.
 | Motor ejecutado mediante SELECT VERSION() | MySQL 8.0.46 de Ubuntu, InnoDB |
 | Conector | mysql2 3.24.6 |
 | Pruebas de API con Express y MySQL real | 16 aprobadas, 0 fallidas |
-| Recorridos de interfaz en Chromium | 9 aprobados, 0 errores JavaScript |
+| Recorridos de interfaz en Chromium | 11 aprobados, 0 errores JavaScript; imágenes y fuentes sin respuestas de error |
 | Colección Postman ejecutada con Newman | 38 peticiones y 38 comprobaciones aprobadas, 0 fallidas |
-| React con Vite | Compilación correcta, 43 módulos |
+| React con Vite | Compilación correcta, 47 módulos |
 | Modelo relacional | 6 tablas, 5 claves foráneas, restricciones de unicidad y CHECK |
 | Documento y diagrama | Word de 2 páginas inspeccionado; draw.io editable con 2 pestañas |
 
@@ -37,16 +37,20 @@ Las pruebas se ejecutaron con Node.js 24.22.1 y una instancia MySQL aislada con 
 ## Recorridos de interfaz aprobados
 
 1. Dashboard conectado a MySQL y sin desbordamiento de página.
-2. Producto: crear, consultar, editar, cancelar borrado y eliminar.
-3. Cliente: crear, editar datos opcionales y eliminar.
-4. Categoría y método de pago: CRUD desde los formularios.
-5. Eliminar una categoría relacionada muestra el conflicto y mantiene el diálogo.
-6. Venta: crear dos líneas, ver detalle, editar cantidad y eliminar.
-7. Detalle de venta: crear, editar cantidad y eliminar desde su pantalla.
-8. Vista móvil: menú y navegación sin desbordamiento horizontal.
-9. Ruta desconocida y regreso al inicio.
+2. Catálogo fotográfico: imágenes locales, fuentes, filtros y vista de tabla.
+3. Producto: crear, consultar, editar, cancelar borrado y eliminar.
+4. Cliente: crear, editar datos opcionales y eliminar.
+5. Categoría y método de pago: CRUD desde los formularios.
+6. Eliminar una categoría relacionada muestra el conflicto y mantiene el diálogo.
+7. Venta: crear dos líneas, ver detalle, editar cantidad y eliminar.
+8. Detalle de venta: crear, editar cantidad y eliminar desde su pantalla.
+9. Vista móvil: menú y navegación sin desbordamiento horizontal.
+10. Catálogo móvil, filtro desde portada y vista previa de fotografía.
+11. Ruta desconocida y regreso al inicio.
 
-Se comprobó la vista de escritorio de 1440 píxeles y móvil de 390 píxeles. La página no presenta desbordamiento horizontal; las tablas anchas se desplazan dentro de su contenedor. Los seis módulos permiten crear, consultar, editar y eliminar desde los formularios.
+La interfaz renovada se comprobó con MySQL 8.0.46 y fotografías locales reales de referencia. Se inspeccionaron la portada y el catálogo a 1440 píxeles de ancho, el catálogo a 1024 píxeles y las vistas móviles a 390 píxeles. Las imágenes y fuentes cargaron sin respuestas de error. Se validó el filtro por categoría, la búsqueda, la alternancia tarjetas/tabla y el acceso a una categoría desde la portada.
+
+Las pruebas de los formularios incluyeron las seis entidades, confirmación y cancelación del borrado, conflictos por relaciones y ventas con varios productos. La compilación React con Vite transformó 47 módulos. El cambio visual conserva el backend MySQL y sus rutas HTTP.
 
 ## Cómo repetir las pruebas
 

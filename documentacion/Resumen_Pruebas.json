@@ -26,9 +26,10 @@
     ]
   },
   "interfaz": {
-    "passed": 9,
+    "passed": 11,
     "checks": [
       "Dashboard conectado a MySQL y sin desbordamiento de página",
+      "Catálogo fotográfico: imágenes locales, fuentes, filtros y vista de tabla",
       "Producto: crear, consultar, editar, cancelar borrado y eliminar",
       "Cliente: crear, editar datos opcionales y eliminar",
       "Categoría y método de pago: CRUD desde los formularios",
@@ -36,9 +37,11 @@
       "Venta: crear dos líneas, ver detalle, editar cantidad y eliminar",
       "Detalle de venta: crear, editar cantidad y eliminar desde su pantalla",
       "Vista móvil: menú y navegación sin desbordamiento horizontal",
+      "Catálogo móvil, filtro desde portada y vista previa de fotografía",
       "Ruta desconocida y regreso al inicio"
     ],
     "jsErrors": [],
+    "assetErrors": [],
     "newmanExit": 0
   },
   "newman": {
@@ -56,12 +59,28 @@
   },
   "compilacion": {
     "resultado": "correcto",
-    "modulos": 43
+    "modulos": 47
   },
   "modelo": {
     "tablas": 6,
     "claves_foraneas": 5,
     "importes": "DECIMAL(10,2)",
     "fechas": "DATETIME(3) UTC"
+  },
+  "presentacion_visual": {
+    "tipografias": [
+      "Jost",
+      "Cormorant Garamond"
+    ],
+    "fotografias_locales": 10,
+    "formatos": [
+      "WebP",
+      "WOFF"
+    ],
+    "anchos_inspeccionados": [
+      1440,
+      1024,
+      390
+    ]
   }
 }
