@@ -9,7 +9,7 @@ Fecha: 4 de noviembre de 2026. Autor: Erian Badilla Fallas.
 | Pruebas de API con Express y MySQL real | 16 aprobadas, 0 fallidas |
 | Recorridos de interfaz en Chromium | 11 aprobados, 0 errores JavaScript; imágenes y fuentes sin respuestas de error |
 | Colección Postman ejecutada con Newman | 38 peticiones y 38 comprobaciones aprobadas, 0 fallidas |
-| React con Vite | Compilación correcta, 49 módulos |
+| React con Vite | Compilación correcta, 50 módulos |
 | Modelo relacional | 6 tablas, 5 claves foráneas, restricciones de unicidad y CHECK |
 | Documento y diagrama | Word de 2 páginas inspeccionado; draw.io editable con 2 pestañas |
 
@@ -65,6 +65,22 @@ Se ejecutaron cinco comprobaciones específicas con Chromium, Express y una inst
 5. Logo y emblema adaptados a móvil; menú abre y el logo lo cierra al volver al inicio.
 
 Resultado: cinco aprobadas, sin errores JavaScript ni respuestas de error de los recursos de marca. La compilación actual transformó 49 módulos. Se inspeccionaron las vistas de escritorio y móvil; el backend no cambió en esta actualización. Las pruebas de API, Newman y los once recorridos completos de interfaz descritos arriba corresponden a la revisión funcional anterior del mismo proyecto.
+
+## Menú lateral y eslogan
+
+La barra lateral se puede ocultar y mostrar desde un botón disponible en computadora y móvil. En computadora la preferencia se conserva al recargar y el contenido ocupa el espacio liberado. En móvil el menú funciona como panel con fondo superpuesto, cierre al tocar fuera, cierre con Escape y foco de teclado contenido en el panel. La foto inferior se sustituyó por el logo esmeralda y oro con el eslogan original «El gusto de cada día.».
+
+Se ejecutaron siete comprobaciones específicas con Chromium y una instancia aislada MySQL 8.0.46:
+
+1. Escritorio: menú visible, foto inferior retirada, logo nuevo y mismo eslogan.
+2. Escritorio: ocultar libera espacio y retira enlaces de la navegación accesible.
+3. Escritorio: preferencia conservada al recargar y botón permite volver a mostrar.
+4. Escritorio: botón de cierre del propio menú y restauración del foco.
+5. Móvil: abre como panel, muestra logo y eslogan y permite cerrar con Escape.
+6. Móvil: Tab permanece dentro del menú y el botón Cerrar lo oculta.
+7. Móvil: cerrar al tocar fuera y navegar cierra el panel sin alterar la preferencia de escritorio.
+
+Resultado: siete aprobadas, sin errores JavaScript ni fallos de carga de imágenes o fuentes. Se inspeccionaron capturas internas del menú visible y oculto en escritorio y abierto en móvil. La compilación actual transformó 50 módulos. Los resultados de API y de las revisiones anteriores se conservan como evidencia histórica; esta modificación afecta al menú de la interfaz.
 
 ## Cómo repetir las pruebas
 

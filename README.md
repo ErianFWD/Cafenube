@@ -10,6 +10,8 @@ La interfaz utiliza verde esmeralda, crema, dorado y naranja, títulos Cormorant
 
 La guía para aplicar únicamente estos cambios a una instalación que ya funciona está en `documentacion/Actualizacion_Visual.md`. Las fotografías se asocian por nombre desde `frontend/src/utils/productMedia.js`; los productos sin una coincidencia usan una foto de granos de café. No se agrega una columna de imagen a MySQL ni un sistema de subida de archivos.
 
+El botón de menú de la cabecera muestra u oculta la barra lateral. En computadora, el contenido aprovecha el espacio liberado y la preferencia se conserva al recargar. En móvil se usa un panel que puede cerrarse con la X, tocando fuera, con Escape o al navegar. El recuadro inferior usa el logo esmeralda con el eslogan «El gusto de cada día.».
+
 ## Iniciar el proyecto
 
 Requisitos: **Node.js 24 LTS** y **MySQL Server 8.0.16 o posterior** (recomendado MySQL 8.4). MySQL Workbench sirve para administrar el servidor; el servicio MySQL debe estar encendido.

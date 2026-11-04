@@ -20,6 +20,12 @@ La conexión configurada en `backend/.env`, incluida tu base `cafenube`, se cons
 
 Si estabas ejecutando la versión compilada, usa `npm run build` y luego `npm start` para actualizarla.
 
+## Mostrar y ocultar la barra de opciones
+
+El botón de menú en la parte superior izquierda permite ocultar o mostrar la barra lateral tanto en computadora como en móvil. La X de la barra también permite cerrarla. En computadora, el contenido ocupa el espacio disponible y se recuerda si dejaste el menú visible u oculto al recargar.
+
+En móvil, el menú se cierra al seleccionar una sección, tocar fuera, pulsar la X o usar Escape. La foto inferior se retiró y se sustituyó por el logo esmeralda con bordes dorados y el mismo eslogan: «El gusto de cada día.».
+
 ## Logo esmeralda y oro
 
 El logo se usa en el menú lateral y el pie de página. Su emblema aparece en la cabecera, el sello de la portada y el icono de la pestaña del navegador. Los dos PNG con fondo transparente también están incluidos para reutilizarlos:

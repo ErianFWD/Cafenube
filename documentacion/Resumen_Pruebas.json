@@ -59,7 +59,7 @@
   },
   "compilacion": {
     "resultado": "correcto",
-    "modulos": 49
+    "modulos": 50
   },
   "modelo": {
     "tablas": 6,
@@ -96,5 +96,26 @@
     "assetErrors": [],
     "motor_en_revision": "MySQL 8.0.46",
     "nota": "Comprobaciones nuevas de marca; los resultados de API, Newman e interfaz general se conservan de la revisión funcional anterior."
+  },
+  "menu_lateral": {
+    "aprobadas": 7,
+    "checks": [
+      "Escritorio: menú visible, foto inferior retirada, logo nuevo y mismo eslogan",
+      "Escritorio: ocultar libera espacio y retira enlaces de la navegación accesible",
+      "Escritorio: preferencia conservada al recargar y botón permite volver a mostrar",
+      "Escritorio: botón de cierre del propio menú y restauración del foco",
+      "Móvil: abre como panel, muestra logo y eslogan y permite cerrar con Escape",
+      "Móvil: Tab permanece dentro del menú y el botón Cerrar lo oculta",
+      "Móvil: cerrar al tocar fuera y navegar cierra el panel sin alterar la preferencia de escritorio"
+    ],
+    "jsErrors": [],
+    "assetErrors": [],
+    "motor_en_revision": "MySQL 8.0.46",
+    "cambios": [
+      "Mostrar y ocultar en escritorio y móvil",
+      "Preferencia de escritorio persistente",
+      "Foto inferior sustituida por logo y eslogan original"
+    ],
+    "nota": "Pruebas actuales de interacción del menú; las comprobaciones anteriores de API y marca se conservan con su alcance original."
   }
 }
