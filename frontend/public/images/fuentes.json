@@ -1,0 +1,70 @@
+[
+  {
+    "archivo": "cappuccino.webp",
+    "url": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=85&fm=webp",
+    "origen": "Unsplash",
+    "licencia": "https://unsplash.com/license"
+  },
+  {
+    "archivo": "americano.webp",
+    "url": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=900&q=85&fm=webp",
+    "origen": "Unsplash",
+    "licencia": "https://unsplash.com/license"
+  },
+  {
+    "archivo": "latte-vainilla.webp",
+    "url": "https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?auto=format&fit=crop&w=900&q=85&fm=webp",
+    "origen": "Unsplash",
+    "licencia": "https://unsplash.com/license"
+  },
+  {
+    "archivo": "croissant.webp",
+    "url": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=900&q=85&fm=webp",
+    "origen": "Unsplash",
+    "licencia": "https://unsplash.com/license"
+  },
+  {
+    "archivo": "cafe-hero.webp",
+    "url": "https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=1800&q=85&fm=webp",
+    "origen": "Unsplash",
+    "licencia": "https://unsplash.com/license"
+  },
+  {
+    "archivo": "cafe-origen.webp",
+    "url": "https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=900&q=85&fm=webp",
+    "origen": "Unsplash",
+    "licencia": "https://unsplash.com/license"
+  },
+  {
+    "archivo": "queque-zanahoria.webp",
+    "url": "https://images.unsplash.com/photo-1772729769040-1886320741ad?auto=format&fit=crop&w=900&q=85&fm=webp",
+    "pagina": "https://unsplash.com/photos/32JVXRNA-z8",
+    "autor": "Sofia Lasheva",
+    "origen": "Unsplash",
+    "licencia": "https://unsplash.com/license"
+  },
+  {
+    "archivo": "tostada-aguacate.webp",
+    "url": "https://images.unsplash.com/photo-1490091119006-59eb16fe739d?auto=format&fit=crop&w=900&q=85&fm=webp",
+    "pagina": "https://unsplash.com/photos/g6wTfSM2Lvw",
+    "autor": "Caroline Attwood",
+    "origen": "Unsplash",
+    "licencia": "https://unsplash.com/license"
+  },
+  {
+    "archivo": "cold-brew.webp",
+    "url": "https://images.unsplash.com/photo-1765690835487-8da60d318d0f?auto=format&fit=crop&w=900&q=85&fm=webp",
+    "pagina": "https://unsplash.com/photos/MxVNVFI_q2A",
+    "autor": "Yazid N",
+    "origen": "Unsplash",
+    "licencia": "https://unsplash.com/license"
+  },
+  {
+    "archivo": "te-frutos-rojos.webp",
+    "url": "https://images.unsplash.com/photo-1749104028302-c4ccdb23a6e2?auto=format&fit=crop&w=900&q=85&fm=webp",
+    "pagina": "https://unsplash.com/photos/E2rjdsKqHKA",
+    "autor": "Gaia & Co",
+    "origen": "Unsplash",
+    "licencia": "https://unsplash.com/license"
+  }
+]
