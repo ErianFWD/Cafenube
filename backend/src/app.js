@@ -6,8 +6,8 @@ import { openDatabase, backendRoot } from './database/connection.js';
 import { apiRoutes } from './routes/apiRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
-export function createApp(options = {}) {
-  const db = openDatabase(options);
+export async function createApp(options = {}) {
+  const db = await openDatabase(options);
   try {
     const app = express();
     const origins = options.origins || (process.env.CLIENT_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173').split(',').map((origin) => origin.trim());
@@ -26,5 +26,5 @@ export function createApp(options = {}) {
     app.use((_req, res) => res.status(404).json({ error: 'Ruta no encontrada.' }));
     app.use(errorHandler);
     return { app, db, close: () => db.close() };
-  } catch (error) { db.close(); throw error; }
+  } catch (error) { await db.close(); throw error; }
 }

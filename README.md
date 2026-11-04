@@ -2,25 +2,45 @@
 
 Sistema de gestión de cafetería desarrollado para el Mini Proyecto 1 Día 1 de Erian Badilla Fallas. Gestiona categorías, productos, clientes, métodos de pago, ventas y detalles de ventas mediante una API REST y una interfaz React.
 
-El enunciado exige al menos tres entidades y permite elegir la base de datos. Este proyecto utiliza **seis tablas** según la petición del usuario, Node.js con Express, React con Vite y SQLite. Se respeta la indicación de trabajar sin login, registro, tokens ni roles. No se incluyen rutas privadas.
+El enunciado exige al menos tres entidades y permite elegir la base de datos. Este proyecto utiliza **seis tablas** según la petición del usuario, Node.js con Express, React con Vite y MySQL. Se respeta la indicación de trabajar sin login, registro, tokens ni roles. No se incluyen rutas privadas.
 
 ## Iniciar el proyecto
 
-Instalar **Node.js 24 LTS**. SQLite está integrado en esa versión de Node; no hace falta instalar un servidor de base de datos. El proyecto fue comprobado con Node 24.22.1. Desde la carpeta que contiene este README:
+Requisitos: **Node.js 24 LTS** y **MySQL Server 8.0.16 o posterior** (recomendado MySQL 8.4). MySQL Workbench sirve para administrar el servidor; el servicio MySQL debe estar encendido.
+
+Desde la carpeta que contiene este README:
 
 ```bash
 npm install
 npm run setup
+```
+
+Abrir `backend/.env` y completar la conexión con los datos del MySQL local:
+
+```dotenv
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=cafeteria
+```
+
+Escribir la contraseña local después de `DB_PASSWORD=`. Si contiene `#` o espacios, encerrarla entre comillas dobles. No colocar credenciales SQL en el frontend ni compartir el archivo `.env`. Si el puerto del servicio es distinto, ajustar `DB_PORT`.
+
+Preparar la base e iniciar la aplicación:
+
+```bash
+npm run db:setup
 npm run dev
 ```
 
-Abrir [http://localhost:5173](http://localhost:5173). El backend escucha en [http://localhost:3001](http://localhost:3001) y se puede comprobar en [/api/salud](http://localhost:3001/api/salud). Mantener la terminal abierta; Ctrl+C detiene los dos servidores.
+`db:setup` crea la base `cafeteria` y las seis tablas cuando está vacía; necesita un usuario local con permisos para crear base y tablas. Incluye datos ficticios de demostración. Si detecta tablas existentes, las conserva y comprueba que pertenezcan al proyecto; no borra ni vuelve a sembrar datos. Si la estructura es parcial o diferente, se detiene para que se revise. Los DDL MySQL tienen commit implícito: un fallo de creación puede dejar tablas parciales y no se resuelve borrándolas automáticamente.
 
-`npm run setup` copia los archivos de configuración de ejemplo únicamente si los archivos locales todavía no existen. No sobrescribe una configuración anterior. Ambos puertos deben estar disponibles; Vite no cambia de puerto silenciosamente.
+Abrir [http://localhost:5173](http://localhost:5173). El backend escucha en [http://localhost:3001](http://localhost:3001); su comprobación está en [/api/salud](http://localhost:3001/api/salud). Mantener la terminal abierta; Ctrl+C detiene los servidores.
 
-En la primera ejecución se crean las seis tablas y datos ficticios de demostración. Los precios están expresados en colones costarricenses y no proceden de una investigación de mercado. Los cambios se conservan en `backend/data/cafeteria.sqlite` y no se vuelven a sembrar al reiniciar ni después de eliminar registros.
+Los precios de demostración son ficticios en colones costarricenses. Los datos se conservan en el servidor MySQL. Para comenzar sin ejemplos, poner `SEED_DEMO=false` en `backend/.env` antes de ejecutar `db:setup` por primera vez. Crear primero categorías y métodos de pago, después productos y ventas; el cliente puede omitirse.
 
-Para comenzar sin datos de ejemplo, establecer `SEED_DEMO=false` en `backend/.env` **antes de crear la base por primera vez**. Cambiar esta opción después no borra ni reemplaza información. Crear primero categorías y métodos de pago, después productos y, finalmente, ventas; el cliente puede omitirse.
+La estructura también está disponible en `backend/sql/cafeteria_mysql.sql` para revisarla o importarla en Workbench sobre una base nueva. Ese archivo crea únicamente las tablas; la vía recomendada para comenzar con ejemplos es `npm run db:setup`.
 
 ## Preparar la versión compilada
 
@@ -53,13 +73,13 @@ El navegador carga index.html y main.jsx; App renderiza las rutas, las rutas eli
 | `backend/src/routes/apiRoutes.js` | Endpoints y métodos HTTP |
 | `backend/src/controllers/` | Validación y respuestas de cada CRUD |
 | `backend/src/models/` | Consultas parametrizadas de catálogo, ventas y detalles |
-| `backend/src/database/schema.sql` | DDL SQLite de las seis tablas, restricciones e índices |
+| `backend/src/database/schema.sql` | DDL MySQL/InnoDB de las seis tablas, restricciones e índices |
 | `backend/src/database/connection.js` | Conexión, creación inicial y transacciones |
 | `backend/src/database/seed.js` | Datos ficticios de la primera ejecución |
 | `backend/src/middleware/errorHandler.js` | Traduce validaciones y restricciones en respuestas HTTP |
 | `backend/src/app.js` | Configuración de Express y CORS |
 | `backend/src/server.js` | Inicio y cierre del servidor |
-| `backend/test/api.test.js` | Pruebas HTTP sobre SQLite real y datos aislados |
+| `backend/test/api.test.js` | Pruebas HTTP sobre MySQL real y datos aislados |
 
 Los modelos usan funciones con responsabilidad concreta. No se añadió un ORM porque el trabajo permite SQL directo y el alcance es pequeño. Los cuatro catálogos comparten una implementación con una lista cerrada de entidades; los valores del usuario siempre se envían como parámetros SQL.
 
@@ -76,13 +96,15 @@ Los modelos usan funciones con responsabilidad concreta. No se añadió un ORM p
 
 El diseño separa entidades y evita listas de productos en una sola celda. La pareja `(venta_id, producto_id)` es única. Una venta tiene entre uno y cincuenta productos distintos; las cantidades son enteros de 1 a 999. La API garantiza el mínimo de un detalle y protege la eliminación del último; las FKs del esquema garantizan la existencia de los padres. El borrado de una venta elimina sus detalles mediante la cascada de esa relación agregada.
 
-Los importes se guardan como céntimos enteros: ₡2 200,00 corresponde a `220000`. La interfaz recibe precios en colones y los convierte sin multiplicaciones decimales imprecisas. Un precio debe estar entre cero y cien millones de céntimos. El total de cada venta se calcula sumando cantidad por precio unitario; no se almacena una copia redundante del total.
+MySQL guarda `productos.precio` y `detalle_ventas.precio_unitario` como `decimal(10,2)` en colones: ₡2 200,00 se almacena como `2200.00`. El contrato HTTP conserva los nombres `precio_centimos` y `precio_unitario_centimos` para mantener los formularios actuales. El backend convierte los céntimos enteros a texto decimal exacto antes de escribir, y SQL convierte el importe a enteros al leer; los DECIMAL no se convierten a flotantes de JavaScript. Los precios admiten entre cero y un millón de colones. Los totales se calculan con aritmética DECIMAL en SQL y se entregan como céntimos enteros seguros.
 
-Al registrar un detalle se toma el precio actual del producto. Al editar cantidad se mantiene el precio histórico; al sustituirlo por otro producto se toma el precio del nuevo producto. Cambiar el catálogo no altera ventas anteriores. La creación y edición de una venta se ejecutan dentro de una transacción: un producto inválido revierte la cabecera y todos sus detalles.
+Al registrar un detalle se toma el precio actual del producto. Al editar cantidad se mantiene el precio histórico; al sustituirlo por otro producto se toma el precio del nuevo producto. Cambiar el catálogo no altera ventas anteriores. La creación y edición de una venta se ejecutan dentro de una transacción InnoDB con una sola conexión: un producto inválido revierte la cabecera y todos sus detalles.
+
+Los cambios de detalles bloquean la venta con SELECT FOR UPDATE y usan READ COMMITTED para volver a leer después del bloqueo. Esto protege el mínimo de un detalle frente a borrados simultáneos.
 
 Las categorías, productos, clientes y métodos de pago referenciados no se eliminan mientras tengan dependencias. La API responde 409 y la interfaz muestra el motivo. Para eliminar una venta se pide confirmación y se informa de que también se eliminan sus detalles.
 
-Las fechas se guardan como texto ISO con zona UTC y se muestran en horario de Costa Rica. El formulario convierte explícitamente la hora local de Costa Rica a UTC.
+Las fechas se guardan como DATETIME(3) interpretado explícitamente como UTC y la API devuelve ISO UTC y se muestran en horario de Costa Rica. El formulario convierte explícitamente la hora local de Costa Rica a UTC.
 
 ## API REST
 
@@ -135,7 +157,7 @@ npm test
 npm run build
 ```
 
-Las pruebas usan peticiones HTTP reales contra Express y SQLite en memoria, además de una base temporal en archivo para verificar persistencia tras reinicio. No modifican `backend/data/cafeteria.sqlite`. El informe de resultados se encuentra en `documentacion/Resultados_Pruebas.md`.
+Las pruebas usan peticiones HTTP reales contra Express y MySQL. Cada prueba crea una base temporal con nombre `cafetest_` y un identificador aleatorio; al terminar elimina exclusivamente esa base creada por la prueba. El usuario de pruebas necesita permisos CREATE y DROP DATABASE. No se elimina ni reinicia `cafeteria`. El informe se encuentra en `documentacion/Resultados_Pruebas.md`.
 
 ## Entregables del día 1
 
@@ -155,7 +177,6 @@ Consultadas el 4 de noviembre de 2026. La elección de las seis tablas correspon
 
 - [Express y manejo de errores](https://expressjs.com/en/guide/error-handling/).
 - [Middleware CORS de Express](https://expressjs.com/en/resources/middleware/cors/).
-- [SQLite y tablas estrictas](https://www.sqlite.org/stricttables.html).
-- [SQLite y claves foráneas](https://www.sqlite.org/foreignkeys.html).
-- [API SQLite de Node.js](https://nodejs.org/api/sqlite.html): la página vigente puede mostrar otra versión; la implementación utiliza DatabaseSync y fue ejecutada en Node 24.22.1.
-- [Vite](https://vite.dev/guide/) y [rutas declarativas de React Router](https://reactrouter.com/start/declarative/routing).
+- [MySQL y DECIMAL](https://dev.mysql.com/doc/refman/8.4/en/fixed-point-types.html).
+- [MySQL y lecturas con bloqueo](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).
+- [MySQL2 y consultas con promesas](https://sidorares.github.io/node-mysql2/docs).

@@ -1,41 +1,42 @@
-# Resultados de verificación de Café Nube
+# Resultados de verificación de Café Nube con MySQL
 
-Fecha: 4 de noviembre de 2026. Proyecto académico de Erian Badilla Fallas.
-
-## Resultado general
+Fecha: 4 de noviembre de 2026. Autor: Erian Badilla Fallas.
 
 | Comprobación ejecutada | Resultado |
 | --- | --- |
-| Pruebas automatizadas de API, Express y SQLite (`npm test`) | 14 aprobadas, 0 fallidas |
-| Recorridos de interfaz en navegador Chromium | 9 aprobados, 0 errores JavaScript |
+| Motor ejecutado mediante SELECT VERSION() | MySQL 8.0.46 de Ubuntu, InnoDB |
+| Conector | mysql2 3.24.6 |
+| Pruebas de API con Express y MySQL real | 16 aprobadas, 0 fallidas |
+| Recorridos de interfaz en Chromium | 9 aprobados, 0 errores JavaScript |
 | Colección Postman ejecutada con Newman | 38 peticiones y 38 comprobaciones aprobadas, 0 fallidas |
-| Compilación React con Vite (`npm run build`) | Correcta, 43 módulos transformados |
-| Esquema SQLite | 6 tablas; `integrity_check` devuelve `ok` |
-| Archivo draw.io | 2 páginas editables, identificadores y conectores válidos |
-| Documento de justificación | 2 páginas renderizadas e inspeccionadas visualmente |
+| React con Vite | Compilación correcta, 43 módulos |
+| Modelo relacional | 6 tablas, 5 claves foráneas, restricciones de unicidad y CHECK |
+| Documento y diagrama | Word de 2 páginas inspeccionado; draw.io editable con 2 pestañas |
 
-Se utilizó Node.js 24.22.1. Las pruebas HTTP usan bases aisladas: SQLite en memoria y un archivo temporal para persistencia. La revisión del navegador y Newman usaron una base temporal independiente con datos ficticios. No se modificaron datos de una cafetería real.
+Las pruebas se ejecutaron con Node.js 24.22.1 y una instancia MySQL aislada con datos ficticios. Cada prueba de API creó su propia base temporal y la eliminó al finalizar. La interfaz y Newman usaron una base de demostración independiente. El código conserva la estructura de React y las rutas HTTP del proyecto.
 
 ## Pruebas de API aprobadas
 
-1. El esquema implementa seis tablas con FK y datos de ejemplo íntegros.
+1. el esquema implementa seis tablas con FK y datos de ejemplo íntegros.
 2. CRUD completo por HTTP de categorías, productos, clientes y métodos de pago.
-3. Ventas y detalles tienen CRUD, totales calculados y borrado conjunto.
-4. Los seis recursos conservan 404 para GET, PUT y DELETE de un ID inexistente.
-5. Validaciones rechazan tipos, nulos obligatorios, IDs, campos extra y precios inválidos.
+3. ventas y detalles tienen CRUD, totales calculados y borrado conjunto.
+4. los seis recursos conservan 404 para GET, PUT y DELETE de un ID inexistente.
+5. validaciones rechazan tipos, nulos obligatorios, IDs, campos extra y precios inválidos.
 6. UNICIDAD y FK rechazan duplicados o relaciones inválidas.
-7. Una venta inválida revierte cabecera y detalles en la misma transacción.
-8. Ventas vacías, cantidades inválidas y productos repetidos no se aceptan.
-9. Precios históricos y edición atómica de ventas conservan los registros previos.
+7. una venta inválida revierte cabecera y detalles en la misma transacción.
+8. ventas vacías, cantidades inválidas y productos repetidos no se aceptan.
+9. precios históricos y edición atómica de ventas conservan los registros previos.
 10. CORS permite los orígenes declarados y responde preflight sin autenticación.
 11. JSON inválido, cuerpo excesivo y ruta desconocida dan respuestas controladas.
-12. Las consultas parametrizadas conservan una entrada de texto sin ejecutarla como SQL.
-13. La persistencia sobre archivo sobrevive reinicios sin resembrar registros borrados.
-14. Búsqueda y paginación tienen límites y orden determinista.
+12. las consultas parametrizadas conservan una entrada de texto sin ejecutarla como SQL.
+13. la persistencia MySQL sobrevive al cierre del pool y setup no resembra.
+14. búsqueda y paginación tienen límites y orden determinista.
+15. DECIMAL guarda colones exactos y la API conserva céntimos y fechas ISO UTC.
+16. el borrado concurrente de detalles mantiene al menos una línea.
 
 ## Recorridos de interfaz aprobados
 
-1. Dashboard conectado a SQLite y sin desbordamiento de página.
+1. Dashboard conectado a MySQL y sin desbordamiento de página.
 2. Producto: crear, consultar, editar, cancelar borrado y eliminar.
 3. Cliente: crear, editar datos opcionales y eliminar.
 4. Categoría y método de pago: CRUD desde los formularios.
@@ -45,21 +46,19 @@ Se utilizó Node.js 24.22.1. Las pruebas HTTP usan bases aisladas: SQLite en mem
 8. Vista móvil: menú y navegación sin desbordamiento horizontal.
 9. Ruta desconocida y regreso al inicio.
 
-La revisión visual cubrió escritorio de 1440 píxeles y móvil de 390 píxeles. Las tablas anchas se desplazan dentro de su contenedor en móvil; la página no presenta desbordamiento horizontal. Se comprobaron los estados de confirmación, cancelación y conflicto por relaciones, además de los formularios de las seis entidades.
+Se comprobó la vista de escritorio de 1440 píxeles y móvil de 390 píxeles. La página no presenta desbordamiento horizontal; las tablas anchas se desplazan dentro de su contenedor. Los seis módulos permiten crear, consultar, editar y eliminar desde los formularios.
 
-## Colección Postman
+## Cómo repetir las pruebas
 
-Se ejecutó `postman/Cafe_Nube.postman_collection.json` con Newman 6 contra una instancia temporal de la API. Cada una de las 38 peticiones comprueba su estado HTTP. Los casos negativos esperan 400, 404 o 409 y se consideran aprobados al recibir ese estado. Las pruebas automatizadas de Node realizan las comprobaciones adicionales de contenido, integridad, transacciones y persistencia.
-
-Para repetir las pruebas, iniciar el proyecto con los datos de demostración e importar la colección en Postman. También puede ejecutarse desde terminal:
+Configurar MySQL en `backend/.env`, iniciar el servicio MySQL y ejecutar desde la raíz:
 
 ```bash
-npx newman run postman/Cafe_Nube.postman_collection.json --env-var base_url=http://localhost:3001/api
+npm test
+npm run build
 ```
 
-Los datos iniciales con ID 1 y 2 referenciados por la colección deben existir. Los registros temporales de la colección se eliminan al completar sus carpetas en orden.
+El usuario MySQL usado por las pruebas necesita permisos CREATE y DROP DATABASE. Las pruebas eliminan exclusivamente las bases aleatorias que crean con prefijo `cafetest_`; la base `cafeteria` se conserva.
 
-## Alcance de la entrega
+Para repetir Postman, preparar los ejemplos con `npm run db:setup`, iniciar con `npm run dev` e importar `postman/Cafe_Nube.postman_collection.json`. Ejecutar sus carpetas en orden. Los productos iniciales 1 y 2 y el método de pago 1 deben existir. Los casos negativos esperan estados 400, 404 o 409.
 
-La base comprobada es SQLite, permitida por el enunciado. Los pagos son registros de métodos de pago, sin procesamiento bancario. El proyecto no implementa autenticación porque el enunciado la excluye. El repositorio entregado es local; no se ha publicado un repositorio remoto de GitHub.
-
+La versión ejecutada fue MySQL 8.0.46. El proyecto admite MySQL 8.0.16 o posterior y recomienda 8.4 para una instalación nueva; no se afirma haber probado otras versiones. La entrega corresponde a ejecución local y no publica un repositorio remoto.

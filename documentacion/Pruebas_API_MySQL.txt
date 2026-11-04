@@ -1,0 +1,25 @@
+✔ el esquema implementa seis tablas con FK y datos de ejemplo íntegros (776.156813ms)
+✔ CRUD completo por HTTP de categorías, productos, clientes y métodos de pago (661.118988ms)
+✔ ventas y detalles tienen CRUD, totales calculados y borrado conjunto (368.999859ms)
+✔ los seis recursos conservan 404 para GET, PUT y DELETE de un ID inexistente (364.040165ms)
+✔ validaciones rechazan tipos, nulos obligatorios, IDs, campos extra y precios inválidos (261.283669ms)
+✔ UNICIDAD y FK rechazan duplicados o relaciones inválidas (171.842847ms)
+✔ una venta inválida revierte cabecera y detalles en la misma transacción (294.203482ms)
+✔ ventas vacías, cantidades inválidas y productos repetidos no se aceptan (162.336198ms)
+✔ precios históricos y edición atómica de ventas conservan los registros previos (213.596115ms)
+✔ CORS permite los orígenes declarados y responde preflight sin autenticación (184.664572ms)
+✔ JSON inválido, cuerpo excesivo y ruta desconocida dan respuestas controladas (169.362338ms)
+✔ las consultas parametrizadas conservan una entrada de texto sin ejecutarla como SQL (275.576097ms)
+La base contiene tablas; se conserva sin resembrar ni modificar.
+✔ la persistencia MySQL sobrevive al cierre del pool y setup no resembra (219.938925ms)
+✔ búsqueda y paginación tienen límites y orden determinista (249.412608ms)
+✔ DECIMAL guarda colones exactos y la API conserva céntimos y fechas ISO UTC (169.487547ms)
+✔ el borrado concurrente de detalles mantiene al menos una línea (175.579143ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5295.758782

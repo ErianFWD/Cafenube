@@ -1,28 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import mysql from 'mysql2/promise';
+import { setupDatabase } from '../src/database/setup.js';
+import { databaseConfig, openDatabase } from '../src/database/connection.js';
 import { createApp } from '../src/app.js';
 
 async function fixture(run, options = {}) {
-  const instance = createApp({ filename: ':memory:', seed: true, ...options });
+  const database = `cafetest_${randomUUID().replaceAll('-','')}`;
+  const config = {database};
+  await setupDatabase(config, options.seed !== false);
+  const instance = await createApp({ config });
   const server = instance.app.listen(0, '127.0.0.1'); await once(server, 'listening');
   const base = `http://127.0.0.1:${server.address().port}/api`;
-  async function request(method, path, body, extraHeaders = {}) {
-    const response = await fetch(base + path, { method, headers: { Origin: 'http://localhost:5173', ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...extraHeaders }, ...(body === undefined ? {} : { body: typeof body === 'string' ? body : JSON.stringify(body) }) });
-    const raw = await response.text(); return { status: response.status, body: raw ? JSON.parse(raw) : null, headers: response.headers };
+  async function request(method,path,body,extraHeaders={}) {
+    const response = await fetch(base+path,{method,headers:{Origin:'http://localhost:5173',...(body===undefined?{}:{'Content-Type':'application/json'}),...extraHeaders},...(body===undefined?{}:{body:typeof body === 'string'?body:JSON.stringify(body)})});
+    const raw=await response.text(); return {status:response.status,body:raw?JSON.parse(raw):null,headers:response.headers};
   }
-  try { return await run(request, instance.db); }
-  finally { await new Promise((resolve) => server.close(resolve)); instance.close(); }
+  try { return await run(request,instance.db); }
+  finally { server.closeAllConnections(); await new Promise(r=>server.close(r)); await instance.close(); const admin=await mysql.createConnection({...databaseConfig(),database:undefined}); try { await admin.query(`drop database \`${database}\``); } finally { await admin.end(); } }
 }
 const venta = (overrides = {}) => ({ cliente_id: null, metodo_pago_id: 1, detalles: [{ producto_id: 1, cantidad: 2 }], ...overrides });
 
 test('el esquema implementa seis tablas con FK y datos de ejemplo íntegros', () => fixture(async (request, db) => {
-  const tables = db.prepare("select name from sqlite_master where type = 'table' and name not like 'sqlite_%'").all();
-  assert.equal(tables.length, 6); assert.equal(db.prepare('pragma foreign_keys').get().foreign_keys, 1);
-  assert.deepEqual(db.prepare('pragma foreign_key_check').all(), []); assert.equal(db.prepare('pragma integrity_check').get().integrity_check, 'ok');
+  const tables = await db.all('select table_name from information_schema.tables where table_schema = database()');
+  assert.equal(tables.length,6);
+  const {total} = await db.get("select count(*) as total from information_schema.referential_constraints where constraint_schema = database()"); assert.equal(total,5);
+  const {version} = await db.get('select version() as version'); assert.match(version,/^8\./);
   assert.equal((await request('GET', '/salud')).status, 200);
   const summary = (await request('GET', '/resumen')).body; assert.equal(summary.productos, 8); assert.equal(summary.ventas, 10); assert.ok(summary.ingresos_centimos > 0);
 }));
@@ -59,7 +64,7 @@ test('ventas y detalles tienen CRUD, totales calculados y borrado conjunto', () 
   const last = (await request('GET', `/ventas/${id}`)).body.detalles[0].id;
   assert.equal((await request('DELETE', `/detalle-ventas/${last}`)).status, 409);
   assert.equal((await request('DELETE', `/ventas/${id}`)).status, 204); assert.equal((await request('GET', `/ventas/${id}`)).status, 404);
-  assert.equal(db.prepare('select count(*) as total from detalle_ventas where venta_id = ?').get(id).total, 0);
+  assert.equal((await db.get('select count(*) as total from detalle_ventas where venta_id = ?', id)).total, 0);
 }));
 
 test('los seis recursos conservan 404 para GET, PUT y DELETE de un ID inexistente', () => fixture(async (request) => {
@@ -86,10 +91,10 @@ test('UNICIDAD y FK rechazan duplicados o relaciones inválidas', () => fixture(
 }));
 
 test('una venta inválida revierte cabecera y detalles en la misma transacción', () => fixture(async (request, db) => {
-  const before = db.prepare('select count(*) as total from ventas').get().total;
-  const detailsBefore = db.prepare('select count(*) as total from detalle_ventas').get().total;
+  const before = (await db.get('select count(*) as total from ventas')).total;
+  const detailsBefore = (await db.get('select count(*) as total from detalle_ventas')).total;
   const result = await request('POST', '/ventas', venta({ detalles: [{ producto_id: 1, cantidad: 1 }, { producto_id: 999999, cantidad: 1 }] }));
-  assert.equal(result.status, 400); assert.equal(db.prepare('select count(*) as total from ventas').get().total, before); assert.equal(db.prepare('select count(*) as total from detalle_ventas').get().total, detailsBefore);
+  assert.equal(result.status, 400); assert.equal((await db.get('select count(*) as total from ventas')).total, before); assert.equal((await db.get('select count(*) as total from detalle_ventas')).total, detailsBefore);
 }));
 
 test('ventas vacías, cantidades inválidas y productos repetidos no se aceptan', () => fixture(async (request) => {
@@ -122,19 +127,31 @@ test('JSON inválido, cuerpo excesivo y ruta desconocida dan respuestas controla
 test('las consultas parametrizadas conservan una entrada de texto sin ejecutarla como SQL', () => fixture(async (request, db) => {
   const name = "Café'); drop table productos; --";
   const row = await request('POST', '/categorias', { nombre: name }); assert.equal(row.status, 201); assert.equal(row.body.nombre, name);
-  assert.equal(db.prepare('select count(*) as total from productos').get().total, 8);
+  assert.equal((await db.get('select count(*) as total from productos')).total, 8);
 }));
 
-test('la persistencia sobre archivo sobrevive reinicios sin resembrar registros borrados', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'cafe-nube-test-')); const filename = join(directory, 'practica.sqlite'); let id;
-  try {
-    await fixture(async (request) => { id = (await request('POST', '/categorias', { nombre: 'Persistente' })).body.id; }, { filename, seed: false });
-    await fixture(async (request) => { assert.equal((await request('GET', `/categorias/${id}`)).body.nombre, 'Persistente'); await request('DELETE', `/categorias/${id}`); }, { filename, seed: true });
-    await fixture(async (request) => { assert.deepEqual((await request('GET', '/categorias')).body, []); assert.deepEqual((await request('GET', '/productos')).body, []); }, { filename, seed: true });
-  } finally { rmSync(directory, { recursive: true, force: true }); }
-});
+test('la persistencia MySQL sobrevive al cierre del pool y setup no resembra', () => fixture(async(request,db) => {
+ const created = (await request('POST','/categorias',{nombre:'Persistente'})).body;
+ const config = {database:(await db.get('select database() as nombre')).nombre};
+ const second = await openDatabase({config});
+ try { assert.equal((await second.get('select nombre from categorias where id = ?',created.id)).nombre,'Persistente'); } finally { await second.close(); }
+ await request('DELETE',`/categorias/${created.id}`);
+ await setupDatabase(config,true);
+ assert.equal(await db.get('select id from categorias where id = ?',created.id),null);
+}));
 
 test('búsqueda y paginación tienen límites y orden determinista', () => fixture(async (request) => {
   const rows = (await request('GET', '/productos?buscar=capp&limit=1&offset=0')).body; assert.equal(rows.length, 1); assert.equal(rows[0].nombre, 'Cappuccino');
   for (const query of ['limit=0', 'limit=201', 'offset=-1', 'limit[]=1', 'inexistente=1']) assert.equal((await request('GET', `/productos?${query}`)).status, 400);
+}));
+
+test('DECIMAL guarda colones exactos y la API conserva céntimos y fechas ISO UTC', () => fixture(async(request,db)=>{
+ const p=await request('POST','/productos',{nombre:'Decimal exacto',categoria_id:1,precio_centimos:255075}); assert.equal(p.status,201); assert.equal(p.body.precio_centimos,255075);
+ const raw=await db.get('select precio from productos where id = ?',p.body.id); assert.equal(raw.precio,'2550.75');
+ const v=await request('POST','/ventas',venta({fecha:'2026-11-04T18:25:30.123Z',detalles:[{producto_id:p.body.id,cantidad:3}]})); assert.equal(v.status,201); assert.equal(v.body.total_centimos,765225); assert.equal(v.body.fecha,'2026-11-04T18:25:30.123Z');
+}));
+test('el borrado concurrente de detalles mantiene al menos una línea',()=>fixture(async(request)=>{
+ const v=(await request('POST','/ventas',venta({detalles:[{producto_id:1,cantidad:1},{producto_id:2,cantidad:1}]}))).body;
+ const results=await Promise.all(v.detalles.map(d=>request('DELETE',`/detalle-ventas/${d.id}`)));
+ assert.deepEqual(results.map(r=>r.status).sort(),[204,409]); assert.equal((await request('GET',`/ventas/${v.id}`)).body.detalles.length,1);
 }));
