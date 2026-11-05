@@ -1,20 +1,23 @@
+import { Op } from 'sequelize';
 import { decimalFromCents } from '../database/connection.js';
-const CONFIG = {
- categorias: { fields: ['nombre','descripcion'], select: 'select t.* from categorias t' },
- metodos_pago: { fields: ['nombre','descripcion'], select: 'select t.* from metodos_pago t' },
- clientes: { fields: ['nombre','telefono','correo'], select: 'select t.* from clientes t' },
- productos: { fields: ['nombre','descripcion','categoria_id','precio'], select: 'select t.id, t.nombre, t.descripcion, t.categoria_id, cast(t.precio * 100 as signed) as precio_centimos, c.nombre as categoria_nombre from productos t join categorias c on c.id = t.categoria_id' }
-};
+import { cents } from './entities.js';
 export function catalogModel(db, entity) {
- const config = CONFIG[entity]; if (!config) throw new Error('Entidad interna no permitida');
- const {fields,select} = config;
- const get = id => db.get(`${select} where t.id = ?`, id);
- const values = data => fields.map(field => field === 'precio' ? decimalFromCents(data.precio_centimos) : data[field]);
+ if (!['categorias','productos','clientes','metodos_pago'].includes(entity)) throw new Error('Entidad interna no permitida');
+ const Model=db.models[entity];
+ const options=()=>({...db.ormOptions(),...(entity==='productos'?{include:[{association:'categoria',attributes:['nombre'] }]}:{})});
+ const dto = row => {
+  if (!row) return null;
+  const data=row.get({plain:true});
+  if(entity==='productos'){data.precio_centimos=cents(data.precio);data.categoria_nombre=data.categoria.nombre;delete data.precio;delete data.categoria;}
+  return data;
+ };
+ const values = data => { const result={...data};if(entity==='productos'){result.precio=decimalFromCents(data.precio_centimos);delete result.precio_centimos;}return result; };
+ const get = async id => dto(await Model.findByPk(id,options()));
  return {
   get,
-  list({buscar,limit,offset}) { return db.all(`${select} where t.nombre like ? order by t.nombre, t.id limit ? offset ?`, `%${buscar}%`, limit, offset); },
-  async create(data) { const result = await db.run(`insert into ${entity} (${fields.join(',')}) values (${fields.map(()=>'?').join(',')})`, ...values(data)); return get(result.insertId); },
-  async update(id,data) { await db.run(`update ${entity} set ${fields.map(field=>`${field} = ?`).join(',')} where id = ?`, ...values(data), id); return get(id); },
-  async remove(id) { return (await db.run(`delete from ${entity} where id = ?`,id)).affectedRows > 0; }
+  async list({buscar,limit,offset}) { return (await Model.findAll({...options(),where:{nombre:{[Op.like]:`%${buscar}%`}},order:[['nombre','ASC'],['id','ASC']],limit,offset})).map(dto); },
+  async create(data){ const row=await Model.create(values(data),db.ormOptions());return get(row.id); },
+  async update(id,data){await Model.update(values(data),{...db.ormOptions(),where:{id}});return get(id);},
+  async remove(id){return (await Model.destroy({...db.ormOptions(),where:{id}}))>0;}
  };
 }

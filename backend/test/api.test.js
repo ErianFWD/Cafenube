@@ -155,3 +155,18 @@ test('el borrado concurrente de detalles mantiene al menos una línea',()=>fixtu
  const results=await Promise.all(v.detalles.map(d=>request('DELETE',`/detalle-ventas/${d.id}`)));
  assert.deepEqual(results.map(r=>r.status).sort(),[204,409]); assert.equal((await request('GET',`/ventas/${v.id}`)).body.detalles.length,1);
 }));
+
+test('Sequelize mapea seis modelos y conserva datos previos al preparar la base',()=>fixture(async(request,db)=>{
+ assert.equal(db.sequelize.getDialect(),'mysql');
+ assert.equal(Object.keys(db.models).length,6);
+ assert.equal(db.models.productos.rawAttributes.precio.type.toSql(),'DECIMAL(10,2)');
+ assert.equal(db.models.ventas.options.timestamps,false);
+ const producto=await db.models.productos.findByPk(1,{include:[{association:'categoria'}]});
+ assert.equal(producto.categoria.nombre,'Café de especialidad');
+ const created=(await request('POST','/clientes',{nombre:'Conservar datos Sequelize',correo:'previo@example.test'})).body;
+ const config={database:(await db.get('select database() as nombre')).nombre};
+ await setupDatabase(config,true);
+ const after=await db.models.clientes.findByPk(created.id);
+ assert.equal(after.correo,'previo@example.test');
+ assert.equal(await db.models.ventas.count(),10);
+}));

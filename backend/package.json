@@ -13,8 +13,9 @@
     "db:setup": "node --env-file=.env src/database/setup.js"
   },
   "dependencies": {
-    "express": "5.3.0",
     "cors": "2.8.6",
-    "mysql2": "^3.15.0"
+    "express": "5.3.0",
+    "mysql2": "^3.15.0",
+    "sequelize": "^6.37.8"
   }
 }

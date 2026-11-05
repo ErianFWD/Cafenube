@@ -1,4 +1,5 @@
-import mysql from 'mysql2/promise';
+import { Sequelize, QueryTypes, Transaction } from 'sequelize';
+import { defineEntities } from '../models/entities.js';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,19 +17,21 @@ function normalize(rows) {
   })));
 }
 export async function openDatabase(options = {}) {
-  const pool = mysql.createPool({ ...databaseConfig(options.config), connectionLimit: 10, waitForConnections: true });
+  const config = databaseConfig(options.config);
+  const sequelize = new Sequelize(config.database,config.user,config.password,{
+    dialect:'mysql',host:config.host,port:config.port,logging:false,timezone:'+00:00',
+    dialectOptions:{charset:config.charset},pool:{max:10,min:0,idle:10000}
+  });
   const context = new AsyncLocalStorage();
   const db = {
-    async all(sql, ...params) { const [rows] = await (context.getStore() || pool).execute(sql, params); return normalize(rows); },
-    async get(sql, ...params) { return (await db.all(sql, ...params))[0] || null; },
-    async run(sql, ...params) { const [result] = await (context.getStore() || pool).execute(sql, params); return result; },
-    async transaction(operation) {
-      const connection = await pool.getConnection();
-      try { await connection.query('set transaction isolation level read committed'); await connection.beginTransaction(); const result = await context.run(connection, operation); await connection.commit(); return result; }
-      catch (error) { await connection.rollback(); throw error; }
-      finally { connection.release(); }
-    },
-    close: () => pool.end()
+    sequelize, models:defineEntities(sequelize),
+    ormOptions: () => ({transaction:context.getStore()}),
+    // SQL parametrizado reservado para informes, inspección y preparación inicial.
+    async all(sql,...params) { return normalize(await sequelize.query(sql,{replacements:params,type:QueryTypes.SELECT,...db.ormOptions()})); },
+    async get(sql,...params) { return (await db.all(sql,...params))[0] || null; },
+    async run(sql,...params) { const [result,metadata] = await sequelize.query(sql,{replacements:params,...db.ormOptions()}); return {insertId:typeof result==='number'?result:result?.insertId,affectedRows:metadata?.affectedRows??metadata}; },
+    transaction(operation) { return sequelize.transaction({isolationLevel:Transaction.ISOLATION_LEVELS.READ_COMMITTED}, t => context.run(t,()=>operation(t))); },
+    close: () => sequelize.close()
   };
   try {
     const {version} = await db.get('select version() as version');
@@ -45,7 +48,7 @@ export async function openDatabase(options = {}) {
     }
     if (columns.some(c=>['precio','precio_unitario'].includes(c.campo) && c.tipo!=='decimal')) throw new Error('Los importes MySQL deben ser DECIMAL');
     return db;
-  } catch (error) { await pool.end(); throw error; }
+  } catch (error) { await sequelize.close(); throw error; }
 }
 export const transaction = (db, operation) => db.transaction(operation);
 export const decimalFromCents = value => `${Math.floor(value / 100)}.${String(value % 100).padStart(2, '0')}`;

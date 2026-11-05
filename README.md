@@ -80,7 +80,7 @@ El navegador carga index.html y main.jsx; App renderiza las rutas, las rutas eli
 | --- | --- |
 | `backend/src/routes/apiRoutes.js` | Endpoints y métodos HTTP |
 | `backend/src/controllers/` | Validación y respuestas de cada CRUD |
-| `backend/src/models/` | Consultas parametrizadas de catálogo, ventas y detalles |
+| `backend/src/models/` | Modelos Sequelize, asociaciones y operaciones de catálogo, ventas y detalles |
 | `backend/src/database/schema.sql` | DDL MySQL/InnoDB de las seis tablas, restricciones e índices |
 | `backend/src/database/connection.js` | Conexión, creación inicial y transacciones |
 | `backend/src/database/seed.js` | Datos ficticios de la primera ejecución |
@@ -89,7 +89,7 @@ El navegador carga index.html y main.jsx; App renderiza las rutas, las rutas eli
 | `backend/src/server.js` | Inicio y cierre del servidor |
 | `backend/test/api.test.js` | Pruebas HTTP sobre MySQL real y datos aislados |
 
-Los modelos usan funciones con responsabilidad concreta. No se añadió un ORM porque el trabajo permite SQL directo y el alcance es pequeño. Los cuatro catálogos comparten una implementación con una lista cerrada de entidades; los valores del usuario siempre se envían como parámetros SQL.
+El ORM es Sequelize 6.37.8 con dialecto MySQL y driver mysql2. Los seis modelos se definen en `backend/src/models/entities.js`, con nombres de tabla explícitos, `timestamps: false`, DECIMAL(10,2) y asociaciones hasMany/belongsTo. El CRUD utiliza findByPk/findAll/create/update/destroy e include. Ventas y detalles comparten transacciones gestionadas, aislamiento READ COMMITTED y bloqueo de la venta. El resumen estadístico conserva consultas SQL de agregación parametrizadas ejecutadas por Sequelize. La preparación del esquema usa el DDL MySQL existente; no se ejecuta sync ni se modifica el esquema al iniciar.
 
 ## Modelo y reglas de negocio
 
@@ -188,3 +188,11 @@ Consultadas el 4 de noviembre de 2026. La elección de las seis tablas correspon
 - [MySQL y DECIMAL](https://dev.mysql.com/doc/refman/8.4/en/fixed-point-types.html).
 - [MySQL y lecturas con bloqueo](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).
 - [MySQL2 y consultas con promesas](https://sidorares.github.io/node-mysql2/docs).
+
+## Actualizar una instalación existente a Sequelize
+
+Detenga el servidor con Ctrl+C. Conserve sus archivos `.env` y su base MySQL. Copie los archivos actualizados y, desde la raíz, ejecute `npm install` y después `npm run dev`. Mantenga `DB_NAME=cafenube` en `backend/.env` si ese es el nombre de su base.
+
+Esta actualización cambia el acceso a datos, no las tablas: no necesita recrear la base, importar SQL ni ejecutar una migración de esquema. `npm run db:setup` continúa reservado para instalaciones nuevas; sobre una base existente valida la estructura y no vuelve a insertar datos. El esquema inicial versionado sigue en `backend/src/database/schema.sql` y `backend/sql/cafeteria_mysql.sql`. Un cambio futuro de columnas requerirá una migración explícita revisada antes de aplicarla.
+
+Documentación consultada el 5 de noviembre de 2026: [asociaciones Sequelize v6](https://sequelize.org/docs/v6/core-concepts/assocs/) y [transacciones Sequelize v6](https://sequelize.org/docs/v6/other-topics/transactions/).

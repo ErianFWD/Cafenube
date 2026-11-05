@@ -96,3 +96,15 @@ El usuario MySQL usado por las pruebas necesita permisos CREATE y DROP DATABASE.
 Para repetir Postman, preparar los ejemplos con `npm run db:setup`, iniciar con `npm run dev` e importar `postman/Cafe_Nube.postman_collection.json`. Ejecutar sus carpetas en orden. Los productos iniciales 1 y 2 y el método de pago 1 deben existir. Los casos negativos esperan estados 400, 404 o 409.
 
 La versión ejecutada fue MySQL 8.0.46. El proyecto admite MySQL 8.0.16 o posterior y recomienda 8.4 para una instalación nueva; no se afirma haber probado otras versiones. La entrega corresponde a ejecución local y no publica un repositorio remoto.
+
+## Adaptación a Sequelize — 5 de noviembre de 2026
+
+Ejecutada con Sequelize 6.37.8, mysql2 3.24.6, Node.js 24.22.1 y MySQL real 8.0.46.
+
+- 17 pruebas de API aprobadas, 0 fallidas. Incluyen CRUD de los seis recursos, asociaciones Sequelize, conservación de registros previos, errores 400/404/409, rollback, precios históricos, DECIMAL, fechas UTC y borrado concurrente de detalles.
+- 11 recorridos completos de React aprobados en Chromium, sin errores JavaScript: catálogos, fotografías, formularios, ventas, detalles, navegación móvil y ruta desconocida.
+- 38 peticiones y 38 comprobaciones de Postman aprobadas mediante Newman.
+- Compilación de React/Vite correcta: 50 módulos. No se modificó ningún archivo del frontend.
+- Se mantienen seis tablas y cinco claves foráneas. No se ejecuta sincronización automática ni migración destructiva. Una instalación existente conserva sus tablas y datos; el cambio no requiere DDL.
+
+Los informes estadísticos utilizan SQL de agregación a través de sequelize.query. El CRUD, las asociaciones y los bloqueos de ventas utilizan los modelos y transacciones de Sequelize. Las pruebas se realizaron en bases ficticias aisladas, no en el servidor del usuario.
