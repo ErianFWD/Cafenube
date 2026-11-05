@@ -1,13 +1,17 @@
 {
-  "fecha": "2026-11-04",
+  "fecha": "2026-11-05",
   "motor": "MySQL 8.0.46",
   "node": "24.22.1",
+  "sequelize": "6.37.8",
   "mysql2": "3.24.6",
+  "bcrypt": "6.0.0",
+  "jsonwebtoken": "9.0.3",
+  "prettier": "3.9.10",
   "api": {
-    "aprobadas": 16,
+    "aprobadas": 24,
     "fallidas": 0,
     "pruebas": [
-      "el esquema implementa seis tablas con FK y datos de ejemplo íntegros",
+      "el esquema implementa siete entidades y metadatos con FK y datos de ejemplo íntegros",
       "CRUD completo por HTTP de categorías, productos, clientes y métodos de pago",
       "ventas y detalles tienen CRUD, totales calculados y borrado conjunto",
       "los seis recursos conservan 404 para GET, PUT y DELETE de un ID inexistente",
@@ -22,12 +26,21 @@
       "la persistencia MySQL sobrevive al cierre del pool y setup no resembra",
       "búsqueda y paginación tienen límites y orden determinista",
       "DECIMAL guarda colones exactos y la API conserva céntimos y fechas ISO UTC",
-      "el borrado concurrente de detalles mantiene al menos una línea"
+      "el borrado concurrente de detalles mantiene al menos una línea",
+      "Sequelize mapea siete modelos y conserva datos previos al preparar la base",
+      "registro, login y perfil usan hash bcrypt sin exponer contraseña",
+      "sin token se rechazan resumen, perfil y los cinco métodos de los seis CRUD",
+      "tokens vencidos, adulterados, con algoritmo o destinatario incorrecto dan 401",
+      "validación de registro rechaza contraseñas cortas, tipos y exceso de bytes UTF-8",
+      "relaciones inexistentes dan 400 o 404 y las eliminaciones dependientes conservan 409",
+      "migración actualiza el Día 1 y conserva IDs, importes y filas al repetirse",
+      "una base con tablas ajenas se rechaza antes de modificar su esquema"
     ]
   },
   "interfaz": {
-    "passed": 11,
+    "passed": 14,
     "checks": [
+      "Autenticación: registro, validación y login",
       "Dashboard conectado a MySQL y sin desbordamiento de página",
       "Catálogo fotográfico: imágenes locales, fuentes, filtros y vista de tabla",
       "Producto: crear, consultar, editar, cancelar borrado y eliminar",
@@ -38,7 +51,9 @@
       "Detalle de venta: crear, editar cantidad y eliminar desde su pantalla",
       "Vista móvil: menú y navegación sin desbordamiento horizontal",
       "Catálogo móvil, filtro desde portada y vista previa de fotografía",
-      "Ruta desconocida y regreso al inicio"
+      "Ruta desconocida y regreso al inicio",
+      "Cerrar sesión: cancelar, confirmar y proteger acceso",
+      "Token inválido: respuesta 401 limpia sesión y vuelve al login"
     ],
     "jsErrors": [],
     "assetErrors": [],
@@ -46,76 +61,34 @@
   },
   "newman": {
     "peticiones": {
-      "total": 38,
+      "total": 47,
       "pending": 0,
       "failed": 0
     },
     "comprobaciones": {
-      "total": 38,
+      "total": 49,
       "pending": 0,
       "failed": 0
     },
     "fallos": []
   },
+  "modelo": {
+    "entidades_negocio": 7,
+    "tablas_tecnicas": ["SequelizeMeta"],
+    "claves_foraneas": 5
+  },
   "compilacion": {
     "resultado": "correcto",
-    "modulos": 50
+    "modulos": 57
   },
-  "modelo": {
-    "tablas": 6,
-    "claves_foraneas": 5,
-    "importes": "DECIMAL(10,2)",
-    "fechas": "DATETIME(3) UTC"
+  "formato": "Prettier comprobado",
+  "informe": {
+    "paginas": 3,
+    "inspeccion_visual": true
   },
-  "presentacion_visual": {
-    "tipografias": [
-      "Jost",
-      "Cormorant Garamond"
-    ],
-    "fotografias_locales": 10,
-    "formatos": [
-      "WebP",
-      "WOFF"
-    ],
-    "anchos_inspeccionados": [
-      1440,
-      1024,
-      390
-    ]
-  },
-  "marca_esmeralda_oro": {
-    "aprobadas": 5,
-    "checks": [
-      "Logo horizontal en menú y pie; emblema en cabecera y portada, cargados correctamente",
-      "Favicon PNG disponible con la ruta del emblema aprobado",
-      "Marca visible y sin desbordamiento en las seis pantallas de gestión",
-      "El logo del pie vuelve al inicio",
-      "Logo y emblema adaptados a móvil; menú abre y el logo lo cierra al volver al inicio"
-    ],
-    "jsErrors": [],
-    "assetErrors": [],
-    "motor_en_revision": "MySQL 8.0.46",
-    "nota": "Comprobaciones nuevas de marca; los resultados de API, Newman e interfaz general se conservan de la revisión funcional anterior."
-  },
-  "menu_lateral": {
-    "aprobadas": 7,
-    "checks": [
-      "Escritorio: menú visible, foto inferior retirada, logo nuevo y mismo eslogan",
-      "Escritorio: ocultar libera espacio y retira enlaces de la navegación accesible",
-      "Escritorio: preferencia conservada al recargar y botón permite volver a mostrar",
-      "Escritorio: botón de cierre del propio menú y restauración del foco",
-      "Móvil: abre como panel, muestra logo y eslogan y permite cerrar con Escape",
-      "Móvil: Tab permanece dentro del menú y el botón Cerrar lo oculta",
-      "Móvil: cerrar al tocar fuera y navegar cierra el panel sin alterar la preferencia de escritorio"
-    ],
-    "jsErrors": [],
-    "assetErrors": [],
-    "motor_en_revision": "MySQL 8.0.46",
-    "cambios": [
-      "Mostrar y ocultar en escritorio y móvil",
-      "Preferencia de escritorio persistente",
-      "Foto inferior sustituida por logo y eslogan original"
-    ],
-    "nota": "Pruebas actuales de interacción del menú; las comprobaciones anteriores de API y marca se conservan con su alcance original."
-  }
+  "limites": [
+    "Pruebas en instancias aisladas con datos ficticios; no en el servidor del usuario.",
+    "Cierre de sesión local sin revocación remota de JWT.",
+    "No se implementan roles ni refresh tokens."
+  ]
 }

@@ -1,0 +1,9 @@
+node_modules/
+frontend/dist/
+.git/
+*.zip
+*.drawio
+*.docx
+*.pdf
+frontend/public/
+package-lock.json

@@ -1,198 +1,135 @@
 # Café Nube
 
-Sistema de gestión de cafetería desarrollado para el Mini Proyecto 1 Día 1 de Erian Badilla Fallas. Gestiona categorías, productos, clientes, métodos de pago, ventas y detalles de ventas mediante una API REST y una interfaz React.
+Mini Proyecto 1 Días 1 y 2 de Erian Badilla Fallas. Sistema de cafetería con React, Node.js, Express, MySQL y Sequelize 6. Incluye seis CRUD completos y autenticación con registro, login y perfil. Todos los usuarios autenticados comparten el mismo acceso; no hay roles.
 
-El enunciado exige al menos tres entidades y permite elegir la base de datos. Este proyecto utiliza **seis tablas** según la petición del usuario, Node.js con Express, React con Vite y MySQL. Se respeta la indicación de trabajar sin login, registro, tokens ni roles. No se incluyen rutas privadas.
+## Actualizar el proyecto que ya funciona
 
-## Presentación visual
-
-La interfaz utiliza verde esmeralda, crema, dorado y naranja, títulos Cormorant Garamond y texto Jost. El logo aprobado de esmeralda y oro se integra mediante `BrandLogo.jsx`, con PNG transparentes en `frontend/public/branding/` y un favicon con su emblema. La portada, las categorías y el catálogo usan fotografías reales de referencia guardadas localmente, con fuentes y licencias en `frontend/public/`. El catálogo permite alternar tarjetas y tabla, buscar y filtrar por categoría. Los formularios mantienen sus operaciones contra la API MySQL.
-
-La guía para aplicar únicamente estos cambios a una instalación que ya funciona está en `documentacion/Actualizacion_Visual.md`. Las fotografías se asocian por nombre desde `frontend/src/utils/productMedia.js`; los productos sin una coincidencia usan una foto de granos de café. No se agrega una columna de imagen a MySQL ni un sistema de subida de archivos.
-
-El botón de menú de la cabecera muestra u oculta la barra lateral. En computadora, el contenido aprovecha el espacio liberado y la preferencia se conserva al recargar. En móvil se usa un panel que puede cerrarse con la X, tocando fuera, con Escape o al navegar. El recuadro inferior usa el logo esmeralda con el eslogan «El gusto de cada día.».
-
-## Iniciar el proyecto
-
-Requisitos: **Node.js 24 LTS** y **MySQL Server 8.0.16 o posterior** (recomendado MySQL 8.4). MySQL Workbench sirve para administrar el servidor; el servicio MySQL debe estar encendido.
-
-Desde la carpeta que contiene este README:
+Detenga el servidor con Ctrl+C y conserve una copia de su carpeta y un respaldo de MySQL. Extraiga el ZIP y copie los archivos actualizados, conservando sus `.env`. Desde la raíz:
 
 ```bash
 npm install
 npm run setup
 ```
 
-Abrir `backend/.env` y completar la conexión con los datos del MySQL local:
+En `backend/.env` conserve su usuario, contraseña, puerto y `DB_NAME=cafenube`. `setup` conserva la configuración existente y genera una clave JWT aleatoria solo si falta. Después:
+
+```bash
+npm run db:migrate
+npm run dev
+```
+
+La migración añade `usuarios` y el registro técnico `SequelizeMeta` a las seis tablas existentes. Conserva IDs, productos, clientes, precios y ventas, y puede repetirse sin resembrar. No utiliza sync force/alter. El DDL MySQL tiene commit implícito; no se promete deshacerlo con rollback. La migración verifica la estructura y se detiene ante incompatibilidades.
+
+Abra [http://localhost:5173](http://localhost:5173), cree su cuenta e inicie sesión. No hay usuario ni contraseña predeterminados.
+
+## Instalación nueva
+
+Requiere Node.js 24 LTS y MySQL Server 8.0.16 o posterior. Workbench es opcional; el servicio MySQL debe estar encendido.
+
+```bash
+npm install
+npm run setup
+```
+
+Complete `backend/.env` sin compartir sus valores:
 
 ```dotenv
+PORT=3001
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=
-DB_NAME=cafeteria
+DB_NAME=cafenube
+CLIENT_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+SEED_DEMO=true
+JWT_SECRET=
 ```
 
-Escribir la contraseña local después de `DB_PASSWORD=`. Si contiene `#` o espacios, encerrarla entre comillas dobles. No colocar credenciales SQL en el frontend ni compartir el archivo `.env`. Si el puerto del servicio es distinto, ajustar `DB_PORT`.
-
-Preparar la base e iniciar la aplicación:
+La línea JWT_SECRET del ejemplo está vacía intencionalmente. `npm run setup` genera la clave en el archivo real; no la copie vacía sobre la generada. Si la contraseña MySQL contiene espacios o #, colóquela entre comillas dobles. En `frontend/.env` use `VITE_API_URL=http://localhost:3001/api`.
 
 ```bash
 npm run db:setup
 npm run dev
 ```
 
-`db:setup` crea la base `cafeteria` y las seis tablas cuando está vacía; necesita un usuario local con permisos para crear base y tablas. Incluye datos ficticios de demostración. Si detecta tablas existentes, las conserva y comprueba que pertenezcan al proyecto; no borra ni vuelve a sembrar datos. Si la estructura es parcial o diferente, se detiene para que se revise. Los DDL MySQL tienen commit implícito: un fallo de creación puede dejar tablas parciales y no se resuelve borrándolas automáticamente.
+La preparación crea una base nueva y datos ficticios. Sobre una base existente migra y valida sin volver a insertar ejemplos. Con `SEED_DEMO=false` antes de la primera preparación comienza sin registros de negocio. Usuarios comienza vacío en todos los casos.
 
-Abrir [http://localhost:5173](http://localhost:5173). El backend escucha en [http://localhost:3001](http://localhost:3001); su comprobación está en [/api/salud](http://localhost:3001/api/salud). Mantener la terminal abierta; Ctrl+C detiene los servidores.
+## Uso y autenticación
 
-Los precios de demostración son ficticios en colones costarricenses. Los datos se conservan en el servidor MySQL. Para comenzar sin ejemplos, poner `SEED_DEMO=false` en `backend/.env` antes de ejecutar `db:setup` por primera vez. Crear primero categorías y métodos de pago, después productos y ventas; el cliente puede omitirse.
+Regístrese con nombre, correo y contraseña de al menos ocho caracteres y máximo 72 bytes UTF-8. Inicie sesión con correo y contraseña. El token HS256 vence en una hora. Se verifica firma, algoritmo, emisor, audiencia, vencimiento y existencia del usuario.
 
-La estructura también está disponible en `backend/sql/cafeteria_mysql.sql` para revisarla o importarla en Workbench sobre una base nueva. Ese archivo crea únicamente las tablas; la vía recomendada para comenzar con ejemplos es `npm run db:setup`.
+React guarda el token en sessionStorage, lo administra con AuthContext y lo envía como Authorization Bearer. Al recargar comprueba el perfil. Ante un 401 o vencimiento elimina la sesión y redirige al login. Cerrar sesión pide confirmación y elimina el token local; no invalida una copia externa hasta su expiración. No se implementa refresh token.
 
-## Preparar la versión compilada
+sessionStorage es accesible a JavaScript y conserva un riesgo de XSS. La comparación de almacenamiento, cookies HttpOnly, CSRF y renovación está en `documentacion/Investigacion_Tokens_Cafe_Nube.md` y en el informe Word/PDF. Para publicar se requiere HTTPS y revisar la estrategia de sesión, el registro público y los límites de intentos según la infraestructura real. Los límites de registro/login incluidos son en memoria para una única instancia local.
+
+## Estructura del proyecto
+
+Se conserva el orden solicitado: `components/`, `pages/`, `routes/`, `App.jsx`, `main.jsx`, `index.html`. `context/AuthContext.jsx` y `services/session.js` apoyan el acceso autenticado. Login y Registro están en pages; RutaProtegida está en components. api.js agrega el token a las peticiones protegidas.
+
+En backend, `models/entities.js` define los catálogos y ventas; `models/usuario.js` define Usuario. `database/connection.js` configura Sequelize; `database/migrations/20261105-usuarios.js` y `database/migrate.js` preparan y registran la migración. `controllers/authController.js`, `routes/authRoutes.js` y `middleware/authMiddleware.js` implementan la autenticación. El middleware de errores conserva respuestas controladas, incluido 401.
+
+## Modelo y reglas del negocio
+
+Hay siete entidades: categorias, productos, clientes, metodos_pago, ventas, detalle_ventas y usuarios; además de la tabla técnica SequelizeMeta. Se mantienen cinco claves foráneas. Usuario protege el acceso y no necesita relacionarse con cada venta para este enunciado.
+
+Las ventas contienen entre uno y cincuenta productos distintos, cantidades de 1 a 999 y cliente opcional. El servidor toma el precio del catálogo y conserva el precio histórico. Los importes físicos son DECIMAL(10,2) en colones; la API usa céntimos enteros seguros y conversión decimal exacta. Las fechas se guardan en DATETIME(3) UTC y se muestran en horario de Costa Rica.
+
+Las operaciones relacionadas comparten transacciones Sequelize con aislamiento READ COMMITTED y bloqueo de la venta. No se permite borrar su último detalle. Eliminar una venta elimina sus detalles; los demás padres con dependencias responden 409. Una referencia inexistente al crear o actualizar responde 400 o 404. El resumen mantiene consultas SQL de agregación ejecutadas por Sequelize.
+
+## API
+
+| Operación                   | Método y ruta           | Respuesta                                               |
+| --------------------------- | ----------------------- | ------------------------------------------------------- |
+| Registro público            | POST /api/auth/register | 201 sin password; 400 si es inválido o duplicado        |
+| Login público               | POST /api/auth/login    | 200 con token y usuario; 401 si las credenciales fallan |
+| Perfil protegido            | GET /api/auth/me        | 200 sin password; 401 sin token válido                  |
+| Estado del servidor público | GET /api/salud          | 200 sin información del negocio                         |
+| Resumen protegido           | GET /api/resumen        | 200 con estadísticas                                    |
+
+Cada ruta base `/api/categorias`, `/api/productos`, `/api/clientes`, `/api/metodos-pago`, `/api/ventas` y `/api/detalle-ventas` admite POST, GET, GET /:id, PUT /:id y DELETE /:id. Todas requieren token, incluidos los listados. Responden 201 al crear, 200 al leer/editar y 204 al eliminar. Sin token válido responden 401; IDs inexistentes con sesión válida dan 404. Los errores se devuelven como JSON.
+
+Los listados admiten buscar, limit de 1 a 200 y offset de 0 a 100000. Detalles admite venta_id. El registro y login usan {correo,password}; registro añade nombre. No se aceptan roles ni campos adicionales. Las respuestas nunca contienen password/hash.
+
+CORS permite orígenes exactos, Content-Type y Authorization; OPTIONS se atiende antes de autenticar. CORS no sustituye autenticación y no bloquea Postman.
+
+## Diseño conservado
+
+Se mantienen colores esmeralda, crema y dorado, el logo aprobado, las fotografías reales locales, Jost y Cormorant Garamond. Las fuentes de imágenes y tipografías están en frontend/public. El menú se puede mostrar/ocultar y conserva el eslogan «El gusto de cada día.». Login y Registro usan la misma identidad visual.
+
+## Prettier y VS Code
+
+El código compatible con Prettier se entrega formateado, con dos espacios y una configuración compartida. `.vscode/settings.json` configura Formato al guardar y el formateador Prettier; instale la extensión recomendada esbenp.prettier-vscode. También puede usar Format Document With → Prettier.
+
+```bash
+npm run format
+npm run format:check
+```
+
+Se excluyen dependencias, archivos compilados, imágenes y documentos binarios. Prettier no formatea SQL de forma nativa; el SQL conserva su presentación legible y en minúsculas.
+
+## Pruebas y Postman
+
+```bash
+npm test
+npm run format:check
+npm run build
+```
+
+Las pruebas HTTP utilizan MySQL real y bases temporales cafetest_ con UUID. Solo eliminan las bases ficticias que crean y requieren permisos CREATE/DROP DATABASE. No reinician la base del usuario.
+
+Importe `postman/Cafe_Nube.postman_collection.json`, configure base_url como http://localhost:3001/api y ejecute toda la colección en orden sobre una base de demostración. La primera carpeta registra una cuenta de prueba, inicia sesión y guarda el token. Incluye casos 400, 401 y 404, además de conflictos 409. La cuenta ficticia de prueba permanece; cada ejecución genera un correo distinto. No use datos reales en pruebas.
+
+Las pruebas y su alcance están en documentacion/Resultados_Pruebas.md. La colección espera los productos 1 y 2 y el método 1 de la base de demostración.
+
+## Versión compilada
 
 ```bash
 npm run build
 npm start
 ```
 
-Abrir [http://localhost:3001](http://localhost:3001). El backend sirve el frontend compilado y su API. La configuración frontend incluida apunta a la API local en 3001; si se usa otro puerto, actualizar `frontend/.env` y volver a compilar. Para servir frontend y API desde el mismo dominio, se puede usar `VITE_API_URL=/api` antes de compilar. El proyecto se entrega para ejecución local.
+Abra [http://localhost:3001](http://localhost:3001). Para otro dominio, configure VITE_API_URL antes de compilar y CLIENT_ORIGINS en backend. No coloque JWT_SECRET ni credenciales MySQL en variables VITE_.
 
-## Organización de React
+## Entregables
 
-| Orden | Archivo o carpeta | Responsabilidad |
-| --- | --- | --- |
-| 1 | `frontend/src/components/` | Formularios, tablas, diálogos, confirmaciones y diseño compartido |
-| 2 | `frontend/src/pages/` | Una página por entidad, inicio y página no encontrada |
-| 3 | `frontend/src/routes/AppRoutes.jsx` | Define las rutas de la aplicación |
-| 4 | `frontend/src/App.jsx` | Integra las rutas |
-| 5 | `frontend/src/main.jsx` | Monta React y configura BrowserRouter |
-| 6 | `frontend/index.html` | Documento HTML de entrada de Vite |
-| Apoyo | `frontend/src/services/api.js` | Peticiones HTTP a la API |
-| Apoyo | `frontend/src/styles/` | Estilos compartidos y adaptación móvil |
-
-El navegador carga index.html y main.jsx; App renderiza las rutas, las rutas eligen páginas y las páginas utilizan los componentes. La organización conserva el orden solicitado sin agregar autenticación.
-
-## Organización del backend
-
-| Carpeta o archivo | Responsabilidad |
-| --- | --- |
-| `backend/src/routes/apiRoutes.js` | Endpoints y métodos HTTP |
-| `backend/src/controllers/` | Validación y respuestas de cada CRUD |
-| `backend/src/models/` | Modelos Sequelize, asociaciones y operaciones de catálogo, ventas y detalles |
-| `backend/src/database/schema.sql` | DDL MySQL/InnoDB de las seis tablas, restricciones e índices |
-| `backend/src/database/connection.js` | Conexión, creación inicial y transacciones |
-| `backend/src/database/seed.js` | Datos ficticios de la primera ejecución |
-| `backend/src/middleware/errorHandler.js` | Traduce validaciones y restricciones en respuestas HTTP |
-| `backend/src/app.js` | Configuración de Express y CORS |
-| `backend/src/server.js` | Inicio y cierre del servidor |
-| `backend/test/api.test.js` | Pruebas HTTP sobre MySQL real y datos aislados |
-
-El ORM es Sequelize 6.37.8 con dialecto MySQL y driver mysql2. Los seis modelos se definen en `backend/src/models/entities.js`, con nombres de tabla explícitos, `timestamps: false`, DECIMAL(10,2) y asociaciones hasMany/belongsTo. El CRUD utiliza findByPk/findAll/create/update/destroy e include. Ventas y detalles comparten transacciones gestionadas, aislamiento READ COMMITTED y bloqueo de la venta. El resumen estadístico conserva consultas SQL de agregación parametrizadas ejecutadas por Sequelize. La preparación del esquema usa el DDL MySQL existente; no se ejecuta sync ni se modifica el esquema al iniciar.
-
-## Modelo y reglas de negocio
-
-| Tabla | Relación principal |
-| --- | --- |
-| categorias | Una categoría agrupa cero o varios productos |
-| productos | Cada producto tiene una categoría y puede aparecer en varias ventas |
-| clientes | Un cliente puede tener varias ventas; una venta puede ser de mostrador |
-| metodos_pago | Cada venta tiene un método; un método puede usarse en varias ventas |
-| ventas | Cabecera con fecha, método de pago, cliente opcional y observaciones |
-| detalle_ventas | Vincula ventas y productos con cantidad y precio histórico |
-
-El diseño separa entidades y evita listas de productos en una sola celda. La pareja `(venta_id, producto_id)` es única. Una venta tiene entre uno y cincuenta productos distintos; las cantidades son enteros de 1 a 999. La API garantiza el mínimo de un detalle y protege la eliminación del último; las FKs del esquema garantizan la existencia de los padres. El borrado de una venta elimina sus detalles mediante la cascada de esa relación agregada.
-
-MySQL guarda `productos.precio` y `detalle_ventas.precio_unitario` como `decimal(10,2)` en colones: ₡2 200,00 se almacena como `2200.00`. El contrato HTTP conserva los nombres `precio_centimos` y `precio_unitario_centimos` para mantener los formularios actuales. El backend convierte los céntimos enteros a texto decimal exacto antes de escribir, y SQL convierte el importe a enteros al leer; los DECIMAL no se convierten a flotantes de JavaScript. Los precios admiten entre cero y un millón de colones. Los totales se calculan con aritmética DECIMAL en SQL y se entregan como céntimos enteros seguros.
-
-Al registrar un detalle se toma el precio actual del producto. Al editar cantidad se mantiene el precio histórico; al sustituirlo por otro producto se toma el precio del nuevo producto. Cambiar el catálogo no altera ventas anteriores. La creación y edición de una venta se ejecutan dentro de una transacción InnoDB con una sola conexión: un producto inválido revierte la cabecera y todos sus detalles.
-
-Los cambios de detalles bloquean la venta con SELECT FOR UPDATE y usan READ COMMITTED para volver a leer después del bloqueo. Esto protege el mínimo de un detalle frente a borrados simultáneos.
-
-Las categorías, productos, clientes y métodos de pago referenciados no se eliminan mientras tengan dependencias. La API responde 409 y la interfaz muestra el motivo. Para eliminar una venta se pide confirmación y se informa de que también se eliminan sus detalles.
-
-Las fechas se guardan como DATETIME(3) interpretado explícitamente como UTC y la API devuelve ISO UTC y se muestran en horario de Costa Rica. El formulario convierte explícitamente la hora local de Costa Rica a UTC.
-
-## API REST
-
-| Entidad | Ruta base |
-| --- | --- |
-| Categorías | `/api/categorias` |
-| Productos | `/api/productos` |
-| Clientes | `/api/clientes` |
-| Métodos de pago | `/api/metodos-pago` |
-| Ventas | `/api/ventas` |
-| Detalle de ventas | `/api/detalle-ventas` |
-
-En cada ruta: POST crea (201), GET lista (200), GET /:id consulta (200 o 404), PUT /:id actualiza (200) y DELETE /:id elimina (204 sin cuerpo). Entradas inválidas devuelven 400, conflictos devuelven 409 y cuerpos excesivos devuelven 413. Los errores inesperados devuelven 500 sin exponer SQL. Las listas responden con un arreglo JSON y admiten `buscar`, `limit` de 1 a 200 y `offset` de 0 a 100000. Los detalles también admiten `venta_id`.
-
-Los PUT de catálogo representan sus campos editables: se incluyen los obligatorios y los opcionales omitidos pasan a NULL. En ventas se envía el conjunto completo de detalles. No se acepta un total ni un precio unitario aportado por el cliente. En PUT de detalles se editan producto y cantidad; el detalle conserva su venta.
-
-Crear un producto:
-
-```json
-{"nombre":"Espresso","categoria_id":1,"precio_centimos":140000,"descripcion":"Café corto"}
-```
-
-Crear una venta (IDs existentes):
-
-```json
-{"cliente_id":null,"metodo_pago_id":1,"detalles":[{"producto_id":1,"cantidad":2}]}
-```
-
-Crear un detalle adicional a una venta existente:
-
-```json
-{"venta_id":1,"producto_id":2,"cantidad":1}
-```
-
-CORS permite únicamente los orígenes locales declarados en `backend/.env`; el middleware responde OPTIONS antes de las rutas. CORS regula la lectura en navegadores y no sustituye autorización ni bloquea clientes como Postman. No se utilizan cookies, tokens ni credenciales de acceso en este proyecto académico.
-
-## Probar con Postman
-
-1. Iniciar el backend con los datos de demostración.
-2. Importar `postman/Cafe_Nube.postman_collection.json`.
-3. Mantener `base_url=http://localhost:3001/api`.
-4. Ejecutar las carpetas en orden. Los POST guardan automáticamente los IDs temporales usados por las peticiones siguientes.
-
-La colección contiene 38 peticiones, incluyendo los CRUD y cuatro casos que esperan errores controlados. Se crean y eliminan registros temporales propios; los productos iniciales con ID 1 y 2 y el método de pago con ID 1 deben seguir disponibles. Los ID de ejemplo se refieren exclusivamente a esta base ficticia. El borrado de una categoría usada espera 409.
-
-## Pruebas automatizadas
-
-```bash
-npm test
-npm run build
-```
-
-Las pruebas usan peticiones HTTP reales contra Express y MySQL. Cada prueba crea una base temporal con nombre `cafetest_` y un identificador aleatorio; al terminar elimina exclusivamente esa base creada por la prueba. El usuario de pruebas necesita permisos CREATE y DROP DATABASE. No se elimina ni reinicia `cafeteria`. El informe se encuentra en `documentacion/Resultados_Pruebas.md`.
-
-## Entregables del día 1
-
-| Requisito del enunciado | Evidencia incluida |
-| --- | --- |
-| Tema y justificación empresarial | `documentacion/01_Tema_y_Justificacion_Cafe_Nube.docx` |
-| DER con atributos y relaciones | `documentacion/Cafeteria_Modelo_y_Estructura.drawio`, primera pestaña |
-| Organización backend y frontend | Carpetas y archivos del proyecto; segunda pestaña del diagrama |
-| Crear y listar al menos una entidad | Seis CRUD completos, pruebas HTTP y colección Postman |
-| Validaciones y confirmación de eliminación | Backend validado y diálogos en React |
-
-Se entrega un repositorio local con un commit inicial y el código listo para ejecutarse. El repositorio remoto de GitHub no se crea ni se publica automáticamente: cuando se disponga de su URL, puede añadirse como origin y enviarse la rama main.
-
-## Referencias técnicas
-
-Consultadas el 4 de noviembre de 2026. La elección de las seis tablas corresponde al diseño de este proyecto, no a una imposición del enunciado.
-
-- [Express y manejo de errores](https://expressjs.com/en/guide/error-handling/).
-- [Middleware CORS de Express](https://expressjs.com/en/resources/middleware/cors/).
-- [MySQL y DECIMAL](https://dev.mysql.com/doc/refman/8.4/en/fixed-point-types.html).
-- [MySQL y lecturas con bloqueo](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).
-- [MySQL2 y consultas con promesas](https://sidorares.github.io/node-mysql2/docs).
-
-## Actualizar una instalación existente a Sequelize
-
-Detenga el servidor con Ctrl+C. Conserve sus archivos `.env` y su base MySQL. Copie los archivos actualizados y, desde la raíz, ejecute `npm install` y después `npm run dev`. Mantenga `DB_NAME=cafenube` en `backend/.env` si ese es el nombre de su base.
-
-Esta actualización cambia el acceso a datos, no las tablas: no necesita recrear la base, importar SQL ni ejecutar una migración de esquema. `npm run db:setup` continúa reservado para instalaciones nuevas; sobre una base existente valida la estructura y no vuelve a insertar datos. El esquema inicial versionado sigue en `backend/src/database/schema.sql` y `backend/sql/cafeteria_mysql.sql`. Un cambio futuro de columnas requerirá una migración explícita revisada antes de aplicarla.
-
-Documentación consultada el 5 de noviembre de 2026: [asociaciones Sequelize v6](https://sequelize.org/docs/v6/core-concepts/assocs/) y [transacciones Sequelize v6](https://sequelize.org/docs/v6/other-topics/transactions/).
+Incluye informe de tokens, DER editable actualizado, seis CRUD, autenticación, React protegido, colección de Postman, configuración de Prettier y documentación. La justificación del Día 1 se conserva como antecedente. El repositorio local incluye el historial; no se ha publicado un repositorio remoto de GitHub.

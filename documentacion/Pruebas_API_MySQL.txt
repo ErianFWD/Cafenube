@@ -1,25 +1,36 @@
-✔ el esquema implementa seis tablas con FK y datos de ejemplo íntegros (558.649978ms)
-✔ CRUD completo por HTTP de categorías, productos, clientes y métodos de pago (524.158912ms)
-✔ ventas y detalles tienen CRUD, totales calculados y borrado conjunto (403.59029ms)
-✔ los seis recursos conservan 404 para GET, PUT y DELETE de un ID inexistente (406.484197ms)
-✔ validaciones rechazan tipos, nulos obligatorios, IDs, campos extra y precios inválidos (323.40015ms)
-✔ UNICIDAD y FK rechazan duplicados o relaciones inválidas (253.512126ms)
-✔ una venta inválida revierte cabecera y detalles en la misma transacción (290.327924ms)
-✔ ventas vacías, cantidades inválidas y productos repetidos no se aceptan (185.799693ms)
-✔ precios históricos y edición atómica de ventas conservan los registros previos (232.341299ms)
-✔ CORS permite los orígenes declarados y responde preflight sin autenticación (205.170156ms)
-✔ JSON inválido, cuerpo excesivo y ruta desconocida dan respuestas controladas (220.540719ms)
-✔ las consultas parametrizadas conservan una entrada de texto sin ejecutarla como SQL (244.419275ms)
-La base contiene tablas; se conserva sin resembrar ni modificar.
-✔ la persistencia MySQL sobrevive al cierre del pool y setup no resembra (264.027614ms)
-✔ búsqueda y paginación tienen límites y orden determinista (179.852061ms)
-✔ DECIMAL guarda colones exactos y la API conserva céntimos y fechas ISO UTC (168.362406ms)
-✔ el borrado concurrente de detalles mantiene al menos una línea (177.134055ms)
-ℹ tests 16
+✔ el esquema implementa siete entidades y metadatos con FK y datos de ejemplo íntegros (813.045623ms)
+✔ CRUD completo por HTTP de categorías, productos, clientes y métodos de pago (717.725407ms)
+✔ ventas y detalles tienen CRUD, totales calculados y borrado conjunto (719.934006ms)
+✔ los seis recursos conservan 404 para GET, PUT y DELETE de un ID inexistente (670.162847ms)
+✔ validaciones rechazan tipos, nulos obligatorios, IDs, campos extra y precios inválidos (632.143549ms)
+✔ UNICIDAD y FK rechazan duplicados o relaciones inválidas (609.803031ms)
+✔ una venta inválida revierte cabecera y detalles en la misma transacción (556.474876ms)
+✔ ventas vacías, cantidades inválidas y productos repetidos no se aceptan (596.498558ms)
+✔ precios históricos y edición atómica de ventas conservan los registros previos (658.683151ms)
+✔ CORS permite los orígenes declarados y responde preflight sin autenticación (653.112221ms)
+✔ JSON inválido, cuerpo excesivo y ruta desconocida dan respuestas controladas (587.615826ms)
+✔ las consultas parametrizadas conservan una entrada de texto sin ejecutarla como SQL (570.690349ms)
+Base existente validada y migrada sin resembrar.
+✔ la persistencia MySQL sobrevive al cierre del pool y setup no resembra (666.996475ms)
+✔ búsqueda y paginación tienen límites y orden determinista (628.52739ms)
+✔ DECIMAL guarda colones exactos y la API conserva céntimos y fechas ISO UTC (612.153843ms)
+✔ el borrado concurrente de detalles mantiene al menos una línea (598.510901ms)
+Base existente validada y migrada sin resembrar.
+✔ Sequelize mapea siete modelos y conserva datos previos al preparar la base (606.294457ms)
+✔ registro, login y perfil usan hash bcrypt sin exponer contraseña (1499.29949ms)
+✔ sin token se rechazan resumen, perfil y los cinco métodos de los seis CRUD (641.872628ms)
+✔ tokens vencidos, adulterados, con algoritmo o destinatario incorrecto dan 401 (696.73692ms)
+✔ validación de registro rechaza contraseñas cortas, tipos y exceso de bytes UTF-8 (1097.051323ms)
+✔ relaciones inexistentes dan 400 o 404 y las eliminaciones dependientes conservan 409 (593.219466ms)
+Base existente validada y migrada sin resembrar.
+Base existente validada y migrada sin resembrar.
+✔ migración actualiza el Día 1 y conserva IDs, importes y filas al repetirse (657.212409ms)
+✔ una base con tablas ajenas se rechaza antes de modificar su esquema (622.294931ms)
+ℹ tests 24
 ℹ suites 0
-ℹ pass 16
+ℹ pass 24
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 5178.667503
+ℹ duration_ms 17042.850784

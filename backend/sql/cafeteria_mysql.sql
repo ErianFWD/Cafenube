@@ -1,3 +1,4 @@
+-- Esquema base del Dia 1. Despues de importarlo, ejecute npm run db:migrate para agregar usuarios y el registro de migraciones del Dia 2.
 create database if not exists cafeteria character set utf8mb4 collate utf8mb4_unicode_ci;
 use cafeteria;
 

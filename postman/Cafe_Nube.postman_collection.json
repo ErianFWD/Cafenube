@@ -40,6 +40,308 @@
   ],
   "item": [
     {
+      "name": "Autenticación Día 2",
+      "item": [
+        {
+          "name": "Sin token rechaza productos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/productos",
+              "host": ["{{base_url}}"],
+              "path": ["productos"]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('Estado 401',()=>pm.response.to.have.status(401));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\": \"Prueba\", \"correo\": \"mal\", \"password\": \"123\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('Estado 400',()=>pm.response.to.have.status(400));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar usuario de prueba",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\": \"Postman Café Nube\", \"correo\": \"{{auth_correo}}\", \"password\": \"{{auth_password}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado 201',()=>pm.response.to.have.status(201));",
+                  "pm.test('No expone contraseña',()=>pm.expect(pm.response.json()).not.to.have.property('password'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Correo duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\": \"Duplicado\", \"correo\": \"{{auth_correo}}\", \"password\": \"{{auth_password}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('Estado 400',()=>pm.response.to.have.status(400));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Credenciales incorrectas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"correo\": \"{{auth_correo}}\", \"password\": \"incorrecta\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('Estado 401',()=>pm.response.to.have.status(401));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Iniciar sesión",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"correo\": \"{{auth_correo}}\", \"password\": \"{{auth_password}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Estado 200',()=>pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('token',pm.response.json().token);",
+                  "pm.test('Usuario seguro',()=>pm.expect(pm.response.json().usuario).not.to.have.property('password'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil actual",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('Estado 200',()=>pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil sin token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('Estado 401',()=>pm.response.to.have.status(401));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Token inválido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/productos",
+              "host": ["{{base_url}}"],
+              "path": ["productos"]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "token-invalido",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('Estado 401',()=>pm.response.to.have.status(401));"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "00 Salud y resumen",
       "item": [
         {
@@ -55,9 +357,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -75,9 +375,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -136,9 +434,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -156,9 +452,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -190,9 +484,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -210,9 +502,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
-                ]
+                "exec": ["pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"]
               }
             }
           ]
@@ -271,9 +561,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -291,9 +579,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -325,9 +611,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -345,9 +629,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
-                ]
+                "exec": ["pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"]
               }
             }
           ]
@@ -406,9 +688,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -426,9 +706,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -460,9 +738,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -480,9 +756,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
-                ]
+                "exec": ["pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"]
               }
             }
           ]
@@ -541,9 +815,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -561,9 +833,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -595,9 +865,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -615,9 +883,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
-                ]
+                "exec": ["pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"]
               }
             }
           ]
@@ -676,9 +942,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -696,9 +960,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -730,9 +992,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -750,9 +1010,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
-                ]
+                "exec": ["pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"]
               }
             }
           ]
@@ -847,9 +1105,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -867,9 +1123,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -901,9 +1155,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"
-                ]
+                "exec": ["pm.test(\"Estado 200\", () => pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -921,9 +1173,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
-                ]
+                "exec": ["pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"]
               }
             }
           ]
@@ -941,9 +1191,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"
-                ]
+                "exec": ["pm.test(\"Estado 204\", () => pm.response.to.have.status(204));"]
               }
             }
           ]
@@ -966,9 +1214,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 400\", () => pm.response.to.have.status(400));"
-                ]
+                "exec": ["pm.test(\"Estado 400\", () => pm.response.to.have.status(400));"]
               }
             }
           ]
@@ -986,9 +1232,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 404\", () => pm.response.to.have.status(404));"
-                ]
+                "exec": ["pm.test(\"Estado 404\", () => pm.response.to.have.status(404));"]
               }
             }
           ]
@@ -1020,9 +1264,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 400\", () => pm.response.to.have.status(400));"
-                ]
+                "exec": ["pm.test(\"Estado 400\", () => pm.response.to.have.status(400));"]
               }
             }
           ]
@@ -1040,14 +1282,34 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Estado 409\", () => pm.response.to.have.status(409));"
-                ]
+                "exec": ["pm.test(\"Estado 409\", () => pm.response.to.have.status(409));"]
               }
             }
           ]
         }
       ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('auth_correo')) pm.collectionVariables.set('auth_correo','cafe.'+Date.now()+'@example.test');",
+          "if (!pm.collectionVariables.get('auth_password')) pm.collectionVariables.set('auth_password','Postman_Cafe_2026');"
+        ]
+      }
     }
   ]
 }

@@ -1,15 +1,14 @@
-# Café Nube con Sequelize
+# Actualizar Café Nube al Día 2
 
-1. Detenga el proyecto con Ctrl+C y conserve una copia de su carpeta actual.
-2. Extraiga el ZIP y copie los archivos actualizados sobre el proyecto. Conserve `backend/.env` y `frontend/.env`; el ZIP no contiene contraseñas.
-3. En `backend/.env`, mantenga sus datos de conexión y `DB_NAME=cafenube`.
-4. Desde la carpeta raíz del proyecto ejecute:
+Conserve una copia del proyecto y un respaldo de MySQL. Detenga los servidores con Ctrl+C, copie los archivos actualizados conservando sus .env y mantenga DB_NAME=cafenube. Desde la raíz ejecute:
 
 ```bash
 npm install
+npm run setup
+npm run db:migrate
 npm run dev
 ```
 
-No vuelva a crear la base ni importe SQL: las tablas existentes son compatibles. Para una instalación nueva, ejecute primero `npm run setup`, configure `.env` y ejecute `npm run db:setup` antes de iniciar.
+setup conserva la configuración existente y crea JWT_SECRET si falta. db:migrate añade usuarios y el registro de migraciones sin borrar datos. Abra el frontend, cree una cuenta e inicie sesión. No necesita recrear la base ni volver a importar SQL.
 
-Los seis modelos y sus asociaciones están en `backend/src/models/entities.js`. La conexión Sequelize está en `backend/src/database/connection.js`. mysql2 permanece instalado porque es el driver que utiliza Sequelize para conectarse a MySQL.
+Para una instalación nueva use npm run db:setup en lugar de db:migrate. Consulte README.md para las instrucciones completas.

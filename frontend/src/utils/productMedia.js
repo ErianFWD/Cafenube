@@ -4,14 +4,26 @@ const media = [
   [/americano|espresso|expreso/, 'americano', 'Taza de café negro'],
   [/latte|vainilla/, 'latte-vainilla', 'Latte con arte en la espuma'],
   [/cold brew|cafe frio|café frío/, 'cold-brew', 'Café frío con hielo'],
-  [/te frio|té frío|frutos rojos|infusion|infusión/, 'te-frutos-rojos', 'Bebida de té rojo con hielo'],
+  [
+    /te frio|té frío|frutos rojos|infusion|infusión/,
+    'te-frutos-rojos',
+    'Bebida de té rojo con hielo',
+  ],
   [/croissant|cruasan/, 'croissant', 'Croissant de mantequilla'],
   [/zanahoria|queque|pastel/, 'queque-zanahoria', 'Queque de zanahoria con cobertura'],
-  [/aguacate|tostada/, 'tostada-aguacate', 'Tostada con aguacate']
+  [/aguacate|tostada/, 'tostada-aguacate', 'Tostada con aguacate'],
 ];
 export function productMedia(product = {}) {
-  const found = media.find(([pattern]) => pattern.test((product.nombre || '').toLocaleLowerCase('es')));
-  return found ? { src: `/images/${found[1]}.webp`, alt: found[2], matched: true } : { src: '/images/cafe-origen.webp', alt: 'Granos de café tostado, imagen de referencia', matched: false };
+  const found = media.find(([pattern]) =>
+    pattern.test((product.nombre || '').toLocaleLowerCase('es')),
+  );
+  return found
+    ? { src: `/images/${found[1]}.webp`, alt: found[2], matched: true }
+    : {
+        src: '/images/cafe-origen.webp',
+        alt: 'Granos de café tostado, imagen de referencia',
+        matched: false,
+      };
 }
 
 export function categoryPhoto(category = {}) {
