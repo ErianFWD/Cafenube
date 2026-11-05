@@ -90,5 +90,11 @@
     "Pruebas en instancias aisladas con datos ficticios; no en el servidor del usuario.",
     "Cierre de sesión local sin revocación remota de JWT.",
     "No se implementan roles ni refresh tokens."
-  ]
+  ],
+  "postman_repetido": {
+    "iteraciones": 2,
+    "peticiones_aprobadas": 94,
+    "comprobaciones_aprobadas": 98,
+    "fallidas": 0
+  }
 }

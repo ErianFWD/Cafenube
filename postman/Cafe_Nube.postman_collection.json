@@ -1306,8 +1306,11 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "if (!pm.collectionVariables.get('auth_correo')) pm.collectionVariables.set('auth_correo','cafe.'+Date.now()+'@example.test');",
-          "if (!pm.collectionVariables.get('auth_password')) pm.collectionVariables.set('auth_password','Postman_Cafe_2026');"
+          "if (pm.info.requestName === 'Sin token rechaza productos') {",
+          "  pm.collectionVariables.set('auth_correo', 'cafe.' + pm.variables.replaceIn('{{$guid}}') + '@example.test');",
+          "  pm.collectionVariables.set('auth_password', 'Postman_Cafe_2026');",
+          "  pm.collectionVariables.unset('token');",
+          "}"
         ]
       }
     }

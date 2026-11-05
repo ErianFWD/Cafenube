@@ -22,3 +22,5 @@ La migración se ejecutó sobre una base ficticia que reproducía las seis tabla
 Las pruebas usaron instancias MySQL aisladas y datos ficticios; no se accedió a la instalación del usuario. Las evidencias textuales están en Pruebas_API_MySQL.txt y Resumen_Pruebas.json. Los informes crudos de Postman y capturas del navegador no se incluyen para evitar distribuir tokens de prueba.
 
 La aplicación se entrega para ejecución local. No se ha desplegado ni publicado un repositorio remoto. El cierre de sesión elimina el token del navegador; una copia externa conserva validez hasta su expiración. sessionStorage mantiene riesgo de XSS, explicado en la investigación. No hay roles ni refresh tokens, conforme al alcance del Día 2.
+
+La colección final también se ejecutó dos veces consecutivas sobre la misma base: 94 peticiones y 98 comprobaciones aprobadas. Cada iteración renueva el correo ficticio y el token de prueba.
