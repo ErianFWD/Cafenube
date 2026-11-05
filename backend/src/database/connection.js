@@ -118,7 +118,7 @@ export async function validateSchema(db, { allowLegacy = false } = {}) {
     'ventas',
     'detalle_ventas',
   ];
-  const business = tables.filter((t) => t.nombre !== 'SequelizeMeta');
+  const business = tables.filter((t) => t.nombre.toLowerCase() !== 'sequelizemeta');
   if (!allowLegacy) expected.push('usuarios');
   const allowed = [...expected, 'usuarios'];
   if (

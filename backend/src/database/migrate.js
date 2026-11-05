@@ -26,7 +26,7 @@ export async function migrateDatabase(overrides = {}) {
     const qi = sequelize.getQueryInterface();
     await usuarios.up(sequelize);
     const tables = await qi.showAllTables();
-    if (!tables.includes('SequelizeMeta'))
+    if (!tables.some((table) => table.toLowerCase() === 'sequelizemeta'))
       await qi.createTable(
         'SequelizeMeta',
         { name: { type: DataTypes.STRING(255), allowNull: false, primaryKey: true } },

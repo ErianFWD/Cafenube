@@ -1,11 +1,22 @@
 import { sessionVersion, endSession } from './session.js';
-const BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/$/, '');
-async function request(path, options = {}) {
+import { resolveApiBase } from './apiBase.js';
+const BASE = resolveApiBase(import.meta.env.VITE_API_URL, {
+  development: import.meta.env.DEV,
+  pageUrl: window.location.href,
+});
+async function request(path, options = {}, retryCsrf = true) {
   const version = sessionVersion();
   const unsafe = !['GET', 'HEAD', 'OPTIONS'].includes(options.method || 'GET');
   let csrfToken;
   if (unsafe) {
-    const bootstrap = await fetch(`${BASE}/auth/csrf`, { credentials: 'include' });
+    let bootstrap;
+    try {
+      bootstrap = await fetch(`${BASE}/auth/csrf`, { credentials: 'include' });
+    } catch {
+      throw new Error(
+        'No se pudo conectar con el servidor. Compruebe que el backend esté iniciado.',
+      );
+    }
     if (!bootstrap.ok) throw new Error('No se pudo preparar la sesión. Intente nuevamente.');
     csrfToken = (await bootstrap.json()).csrfToken;
   }
@@ -31,6 +42,16 @@ async function request(path, options = {}) {
     data = await response.json();
   } catch {
     throw new Error('El servidor devolvió una respuesta no válida.');
+  }
+  if (unsafe && response.status === 403 && data.code === 'CSRF_INVALID') {
+    // El servidor rechazó la solicitud antes de escribir: renovar y repetir una sola vez es seguro.
+    if (retryCsrf) return request(path, options, false);
+    throw Object.assign(
+      new Error(
+        'No se pudo validar la cookie de seguridad. Permita las cookies de esta página y vuelva a intentar.',
+      ),
+      { status: 403 },
+    );
   }
   if (!response.ok)
     throw Object.assign(new Error(data.error || 'No fue posible completar la operación.'), {
