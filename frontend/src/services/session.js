@@ -1,16 +1,16 @@
-const KEY = 'cafe-nube:token';
-export function getToken() {
-  try {
-    return sessionStorage.getItem(KEY);
-  } catch {
-    return null;
-  }
+let version = 0;
+export const sessionVersion = () => version;
+export function newSession() {
+  version += 1;
 }
-export function saveToken(token) {
-  sessionStorage.setItem(KEY, token);
-}
-export function clearToken(expected) {
-  if (expected && getToken() !== expected) return;
-  sessionStorage.removeItem(KEY);
+export function endSession(expected) {
+  if (expected !== undefined && expected !== version) return;
+  version += 1;
   window.dispatchEvent(new Event('cafe-nube:session-ended'));
+}
+// Retira únicamente el token de la versión anterior; la sesión actual usa HttpOnly.
+try {
+  sessionStorage.removeItem('cafe-nube:token');
+} catch {
+  /* Almacenamiento opcional. */
 }

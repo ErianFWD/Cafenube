@@ -1,3 +1,5 @@
+import cookieParser from 'cookie-parser';
+import { originMiddleware } from './middleware/csrfMiddleware.js';
 import express from 'express';
 import { authConfig } from './utils/authConfig.js';
 import cors from 'cors';
@@ -39,9 +41,12 @@ export async function createApp(options = {}) {
           callback(null, origins.includes(origin) ? origin : false);
         },
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        allowedHeaders: ['Content-Type', 'X-CSRF-Token'],
+        credentials: true,
       }),
     );
+    app.use(cookieParser());
+    app.use('/api', originMiddleware(origins));
     app.use(express.json({ limit: '64kb', strict: true }));
     app.use('/api', apiRoutes(db, auth));
     app.use('/api', (_req, res) =>

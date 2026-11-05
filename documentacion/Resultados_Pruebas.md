@@ -1,26 +1,22 @@
-# Verificación de Café Nube Día 2
+# Verificación de Café Nube con cookies
 
 Erian Badilla Fallas · 5 de noviembre de 2026
 
-| Comprobación ejecutada  | Resultado                                                                 |
-| ----------------------- | ------------------------------------------------------------------------- |
-| Motor real              | MySQL 8.0.46, InnoDB                                                      |
-| Runtime y ORM           | Node.js 24.22.1 y Sequelize 6.37.8                                        |
-| API HTTP contra MySQL   | 24 pruebas aprobadas, 0 fallidas                                          |
-| React en Chromium       | 14 recorridos aprobados, sin errores JavaScript ni errores de recursos    |
-| Postman mediante Newman | 47 peticiones y 49 comprobaciones aprobadas, 0 fallidas                   |
-| Login y Registro        | Inspección adicional en escritorio y móvil sin desbordamiento             |
-| Compilación de React    | Correcta, 57 módulos                                                      |
-| Prettier                | Comprobación final correcta; configuración de formato al guardar incluida |
-| Modelo MySQL            | 7 entidades, 5 FKs y SequelizeMeta como tabla técnica                     |
-| Informe de tokens       | 3 páginas, Word/PDF renderizados e inspeccionados                         |
+| Comprobación ejecutada | Resultado                                                                         |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| Motor real             | MySQL 8.0.46, InnoDB                                                              |
+| Runtime y ORM          | Node.js 24.22.1 y Sequelize 6.37.8                                                |
+| API HTTP               | 28 pruebas aprobadas, 0 fallidas                                                  |
+| React en Chromium      | 14 recorridos aprobados, sin errores JavaScript ni de recursos                    |
+| Colección Postman      | 51 casos, 79 peticiones incluyendo preparación CSRF y 54 comprobaciones aprobadas |
+| Sesión del navegador   | Cookie HttpOnly, SameSite=Lax, sin JWT en Web Storage                             |
+| Logout                 | El servidor elimina ambas cookies con el mismo alcance                            |
+| CSRF                   | Escritura sin token, alterada, de otra sesión o de origen ajeno rechazada         |
+| Informe                | Word y PDF de 3 páginas inspeccionados                                            |
+| Modelo                 | Siete entidades y SequelizeMeta; sin cambios de esquema por cookies               |
 
-Se probaron registro, correo duplicado, validación de contraseñas, hash bcrypt real, ausencia de password en respuestas, login, perfil, vencimiento y todos los métodos CRUD sin token. También se comprobaron tokens alterados, sin exp, con algoritmo o audiencia incorrectos y con usuario inexistente. Se conservaron las pruebas de precios exactos, historial, rollback y concurrencia.
+Se conservan las pruebas CRUD, precios históricos, DECIMAL, fechas, concurrencia, migración no destructiva, validación, 404 y 409. La autenticación comprueba JWT vencido, alterado, sin exp, de otro algoritmo/audiencia o con usuario inexistente. Se probaron registro/login con CSRF y valores de cookies no textuales sin producir un 500.
 
-La migración se ejecutó sobre una base ficticia que reproducía las seis tablas del Día 1, se repitió y se verificaron los IDs, importes y filas. Una estructura con tablas ajenas se rechazó antes de modificarla. Los recorridos de React probaron acceso directo protegido, registro, login incorrecto/correcto, recarga, seis módulos, móvil, cancelación/confirmación del cierre y limpieza ante un 401.
+En Chromium se verificaron registro, login, recarga, seis módulos, confirmación/cancelación del cierre, desaparición de la cookie al cerrar y regreso al login con una cookie inválida. El atributo HttpOnly se inspeccionó con la API del navegador y se comprobó que no hay JWT en sessionStorage. El flujo real usó frontend y API en puertos distintos con credenciales CORS.
 
-Las pruebas usaron instancias MySQL aisladas y datos ficticios; no se accedió a la instalación del usuario. Las evidencias textuales están en Pruebas_API_MySQL.txt y Resumen_Pruebas.json. Los informes crudos de Postman y capturas del navegador no se incluyen para evitar distribuir tokens de prueba.
-
-La aplicación se entrega para ejecución local. No se ha desplegado ni publicado un repositorio remoto. El cierre de sesión elimina el token del navegador; una copia externa conserva validez hasta su expiración. sessionStorage mantiene riesgo de XSS, explicado en la investigación. No hay roles ni refresh tokens, conforme al alcance del Día 2.
-
-La colección final también se ejecutó dos veces consecutivas sobre la misma base: 94 peticiones y 98 comprobaciones aprobadas. Cada iteración renueva el correo ficticio y el token de prueba.
+Todas las pruebas se realizaron en instancias MySQL aisladas con datos ficticios. No se accedió a la base del usuario. No se desplegó HTTPS real de producción; Secure está configurado para ese entorno. La eliminación de cookies no revoca copias externas de un JWT. Los informes crudos de Postman y capturas no se distribuyen para evitar incluir cookies o credenciales de prueba.

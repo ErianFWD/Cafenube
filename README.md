@@ -56,15 +56,21 @@ La preparación crea una base nueva y datos ficticios. Sobre una base existente 
 
 ## Uso y autenticación
 
-Regístrese con nombre, correo y contraseña de al menos ocho caracteres y máximo 72 bytes UTF-8. Inicie sesión con correo y contraseña. El token HS256 vence en una hora. Se verifica firma, algoritmo, emisor, audiencia, vencimiento y existencia del usuario.
+Regístrese con nombre, correo y contraseña de al menos ocho caracteres y máximo 72 bytes UTF-8. Inicie sesión con correo y contraseña. El JWT HS256 vence en una hora y se guarda en la cookie HttpOnly cafe_nube_session, con Path=/api y sin Domain. No se devuelve en JSON ni se almacena en sessionStorage/localStorage. La firma, algoritmo, emisor, audiencia, vencimiento y usuario se verifican en el servidor.
 
-React guarda el token en sessionStorage, lo administra con AuthContext y lo envía como Authorization Bearer. Al recargar comprueba el perfil. Ante un 401 o vencimiento elimina la sesión y redirige al login. Cerrar sesión pide confirmación y elimina el token local; no invalida una copia externa hasta su expiración. No se implementa refresh token.
+React utiliza credentials: include en sus peticiones y recupera el perfil al recargar. Un 401 limpia el estado de React y vuelve al login. Cerrar sesión pide confirmación y llama a POST /api/auth/logout para borrar las cookies. No hay refresh token. Una copia externa de un JWT conserva validez hasta vencer: borrar la cookie no implementa revocación remota.
 
-sessionStorage es accesible a JavaScript y conserva un riesgo de XSS. La comparación de almacenamiento, cookies HttpOnly, CSRF y renovación está en `documentacion/Investigacion_Tokens_Cafe_Nube.md` y en el informe Word/PDF. Para publicar se requiere HTTPS y revisar la estrategia de sesión, el registro público y los límites de intentos según la infraestructura real. Los límites de registro/login incluidos son en memoria para una única instancia local.
+GET /api/auth/csrf prepara el token CSRF. Cada escritura, incluidos registro, login y logout, envía X-CSRF-Token. Se calcula con HMAC ligado a la sesión; antes de autenticar usa un nonce aleatorio en una cookie HttpOnly. Se rechazan valores incorrectos y orígenes ajenos. HttpOnly reduce la exposición del JWT ante JavaScript, pero no sustituye la prevención de XSS ni el control CSRF.
+
+En desarrollo local, COOKIE_SECURE=false y COOKIE_SAME_SITE=lax. En producción se activa Secure y se requiere HTTPS. SameSite=None exige Secure. Use siempre el mismo host para frontend y API: localhost con localhost, o 127.0.0.1 con 127.0.0.1. Los puertos pueden ser distintos. Para un despliegue entre sitios distintos se deben revisar las políticas de cookies de terceros.
+
+Esta adaptación mantiene JWT y cambia el transporte Bearer indicado en el documento académico por cookies, según la solicitud actual del usuario. La comparación y la decisión están en el informe de investigación actualizado.
+
+Si ya instaló el Día 2, esta actualización no cambia tablas: conserve .env y ejecute npm install y npm run dev. Si aún está en el Día 1, siga el procedimiento inicial con db:migrate.
 
 ## Estructura del proyecto
 
-Se conserva el orden solicitado: `components/`, `pages/`, `routes/`, `App.jsx`, `main.jsx`, `index.html`. `context/AuthContext.jsx` y `services/session.js` apoyan el acceso autenticado. Login y Registro están en pages; RutaProtegida está en components. api.js agrega el token a las peticiones protegidas.
+Se conserva el orden solicitado: `components/`, `pages/`, `routes/`, `App.jsx`, `main.jsx`, `index.html`. `context/AuthContext.jsx` y `services/session.js` apoyan el acceso autenticado. Login y Registro están en pages; RutaProtegida está en components. api.js envía las cookies y prepara el encabezado CSRF en las escrituras.
 
 En backend, `models/entities.js` define los catálogos y ventas; `models/usuario.js` define Usuario. `database/connection.js` configura Sequelize; `database/migrations/20261105-usuarios.js` y `database/migrate.js` preparan y registran la migración. `controllers/authController.js`, `routes/authRoutes.js` y `middleware/authMiddleware.js` implementan la autenticación. El middleware de errores conserva respuestas controladas, incluido 401.
 
@@ -78,19 +84,19 @@ Las operaciones relacionadas comparten transacciones Sequelize con aislamiento R
 
 ## API
 
-| Operación                   | Método y ruta           | Respuesta                                               |
-| --------------------------- | ----------------------- | ------------------------------------------------------- |
-| Registro público            | POST /api/auth/register | 201 sin password; 400 si es inválido o duplicado        |
-| Login público               | POST /api/auth/login    | 200 con token y usuario; 401 si las credenciales fallan |
-| Perfil protegido            | GET /api/auth/me        | 200 sin password; 401 sin token válido                  |
-| Estado del servidor público | GET /api/salud          | 200 sin información del negocio                         |
-| Resumen protegido           | GET /api/resumen        | 200 con estadísticas                                    |
+| Operación                   | Método y ruta           | Respuesta                                                         |
+| --------------------------- | ----------------------- | ----------------------------------------------------------------- |
+| Registro público            | POST /api/auth/register | 201 sin password; 400 si es inválido o duplicado                  |
+| Login público               | POST /api/auth/login    | 200 con usuario y cookie HttpOnly; 401 si las credenciales fallan |
+| Perfil protegido            | GET /api/auth/me        | 200 sin password; 401 sin token válido                            |
+| Estado del servidor público | GET /api/salud          | 200 sin información del negocio                                   |
+| Resumen protegido           | GET /api/resumen        | 200 con estadísticas                                              |
 
-Cada ruta base `/api/categorias`, `/api/productos`, `/api/clientes`, `/api/metodos-pago`, `/api/ventas` y `/api/detalle-ventas` admite POST, GET, GET /:id, PUT /:id y DELETE /:id. Todas requieren token, incluidos los listados. Responden 201 al crear, 200 al leer/editar y 204 al eliminar. Sin token válido responden 401; IDs inexistentes con sesión válida dan 404. Los errores se devuelven como JSON.
+Cada ruta base `/api/categorias`, `/api/productos`, `/api/clientes`, `/api/metodos-pago`, `/api/ventas` y `/api/detalle-ventas` admite POST, GET, GET /:id, PUT /:id y DELETE /:id. Todas requieren una cookie de sesión válida, incluidos los listados. Responden 201 al crear, 200 al leer/editar y 204 al eliminar. Sin token válido responden 401; IDs inexistentes con sesión válida dan 404. Los errores se devuelven como JSON.
 
 Los listados admiten buscar, limit de 1 a 200 y offset de 0 a 100000. Detalles admite venta_id. El registro y login usan {correo,password}; registro añade nombre. No se aceptan roles ni campos adicionales. Las respuestas nunca contienen password/hash.
 
-CORS permite orígenes exactos, Content-Type y Authorization; OPTIONS se atiende antes de autenticar. CORS no sustituye autenticación y no bloquea Postman.
+CORS permite credenciales, orígenes exactos, Content-Type y X-CSRF-Token; OPTIONS se atiende antes de autenticar. CORS no sustituye autenticación y no bloquea Postman.
 
 ## Diseño conservado
 
@@ -117,7 +123,7 @@ npm run build
 
 Las pruebas HTTP utilizan MySQL real y bases temporales cafetest_ con UUID. Solo eliminan las bases ficticias que crean y requieren permisos CREATE/DROP DATABASE. No reinician la base del usuario.
 
-Importe `postman/Cafe_Nube.postman_collection.json`, configure base_url como http://localhost:3001/api y ejecute toda la colección en orden sobre una base de demostración. La primera carpeta registra una cuenta de prueba, inicia sesión y guarda el token. Incluye casos 400, 401 y 404, además de conflictos 409. La cuenta ficticia de prueba permanece; cada ejecución genera un correo distinto. No use datos reales en pruebas.
+Importe `postman/Cafe_Nube.postman_collection.json`, configure base_url como http://localhost:3001/api y ejecute toda la colección en orden sobre una base de demostración. La primera carpeta registra una cuenta de prueba e inicia sesión. Postman conserva las cookies en su cookie jar y obtiene CSRF antes de cada escritura. Incluye casos 400, 401 y 404, además de conflictos 409. La cuenta ficticia de prueba permanece; cada ejecución genera un correo distinto. No use datos reales en pruebas.
 
 Las pruebas y su alcance están en documentacion/Resultados_Pruebas.md. La colección espera los productos 1 y 2 y el método 1 de la base de demostración.
 
@@ -133,3 +139,7 @@ Abra [http://localhost:3001](http://localhost:3001). Para otro dominio, configur
 ## Entregables
 
 Incluye informe de tokens, DER editable actualizado, seis CRUD, autenticación, React protegido, colección de Postman, configuración de Prettier y documentación. La justificación del Día 1 se conserva como antecedente. El repositorio local incluye el historial; no se ha publicado un repositorio remoto de GitHub.
+
+## Cookies y Postman
+
+Mantenga activo el cookie jar de Postman. Las peticiones negativas que prueban ausencia de cookies lo desactivan únicamente para ese caso. Los scripts preparan CSRF automáticamente. Se agregaron GET /api/auth/csrf y POST /api/auth/logout. La cuenta de prueba permanece y el correo cambia en cada ejecución.

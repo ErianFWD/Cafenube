@@ -25,19 +25,25 @@ Un refresh token permite solicitar nuevos tokens de acceso sin volver a introduc
 | sessionStorage   | Persiste al recargar dentro de la sesión de la pestaña | También es accesible a JavaScript y vulnerable a XSS                                                          |
 | Cookie HttpOnly  | JavaScript no puede leer directamente el token         | El navegador la envía automáticamente; requiere estudiar CSRF, SameSite, Secure y la topología del despliegue |
 
-Elegimos sessionStorage para este ejercicio con Authorization Bearer y AuthContext. Es una decisión de alcance y facilidad de prueba, no una recomendación universal de seguridad. OWASP desaconseja guardar identificadores de sesión en almacenamiento accesible a JavaScript. Se documenta el riesgo de XSS y se evita interpretar entradas como HTML. Una solución de producción deberá reevaluar cookies HttpOnly o un patrón BFF [5, 6, 7].
+La decisión final del proyecto es utilizar una cookie HttpOnly, host-only y con Path=/api para guardar el JWT. El navegador la envía mediante fetch con credentials: include; React no recibe el JWT en el JSON ni lo guarda en Web Storage. Se conserva el perfil en AuthContext. HttpOnly impide leer la cookie desde JavaScript, pero no impide que un XSS activo actúe con la sesión [7].
+
+La cookie usa SameSite=Lax por defecto y vence en una hora. En producción lleva Secure y requiere HTTPS. Para el desarrollo local con HTTP, Secure permanece desactivado. Frontend y API deben usar el mismo nombre de host, por ejemplo localhost en ambos; cambiar de puerto no cambia el sitio. Si se despliegan en sitios distintos, se deben revisar SameSite=None, Secure y las restricciones de cookies de terceros [7].
 
 ## Flujo en Express y React
 
-El registro valida nombre, correo único y contraseña; guarda únicamente su hash. El login compara ese hash y devuelve token y usuario sin password. Un middleware exige Authorization: Bearer seguido del token y consulta el usuario identificado antes de permitir la operación. Registro y login son públicos; el perfil, el resumen y los CRUD quedan protegidos.
+El registro valida nombre, correo único y contraseña; guarda únicamente su hash. El login compara ese hash, coloca el JWT en una cookie HttpOnly y devuelve el usuario sin password. Un middleware verifica el JWT recibido en la cookie HttpOnly y consulta el usuario identificado antes de permitir la operación. Registro y login son públicos; el perfil, el resumen y los CRUD quedan protegidos.
 
-AuthContext conserva el estado de sesión. Una función común de fetch incorpora el encabezado. RutaProtegida espera la comprobación del perfil antes de mostrar contenido. Un 401 elimina la sesión y redirige al login. Cerrar sesión elimina el token local; no revoca una copia que ya haya sido sustraída, la cual seguirá siendo válida hasta vencer. No se promete revocación inmediata.
+AuthContext conserva el estado de sesión. Una función común de fetch incorpora credentials: include. RutaProtegida espera la comprobación del perfil antes de mostrar contenido. Un 401 limpia el estado de React y redirige al login. Cerrar sesión llama a POST /api/auth/logout y el servidor elimina las cookies con su mismo nombre y alcance. Una copia externa del JWT seguirá siendo válida hasta vencer; no se promete revocación remota inmediata.
+
+## Protección CSRF
+
+Como las cookies se envían automáticamente, se exige X-CSRF-Token en todas las escrituras, incluidos registro, login y logout. GET /api/auth/csrf entrega un valor HMAC calculado con el secreto del servidor y ligado al JWT actual. Antes del login utiliza un nonce aleatorio en otra cookie HttpOnly. El servidor compara el valor en tiempo constante y rechaza los orígenes ajenos. Un valor de otra sesión no permite modificar datos; SameSite es una defensa adicional, no el único control [10].
 
 ## Contraseñas y configuración
 
 Se usará bcrypt con coste 12 y sal generada por la biblioteca. El registro exigirá al menos ocho caracteres y rechazará entradas que superen 72 bytes UTF-8 para evitar el truncamiento del algoritmo. El hash no se devuelve en respuestas ni se registra en logs [8, 9].
 
-JWT_SECRET quedará solo en backend/.env y se generará de forma aleatoria durante la configuración. El ejemplo permanecerá vacío y el servidor rechazará un secreto ausente o demasiado corto. CORS permitirá Authorization y Content-Type desde los orígenes del frontend. Las pruebas locales usarán HTTP en loopback; un despliegue debe emplear HTTPS. Se limitarán los intentos en registro y login. Todos los usuarios autenticados tendrán el mismo acceso, como pide el enunciado.
+JWT_SECRET quedará solo en backend/.env y se generará de forma aleatoria durante la configuración. El ejemplo permanecerá vacío y el servidor rechazará un secreto ausente o demasiado corto. CORS permitirá credenciales, Content-Type y X-CSRF-Token desde orígenes exactos. Las pruebas locales usarán HTTP en loopback; un despliegue debe emplear HTTPS. Se limitarán los intentos en registro y login. Todos los usuarios autenticados tendrán el mismo acceso, como pide el enunciado.
 
 ## Fuentes consultadas
 
@@ -52,3 +58,5 @@ Consulta realizada el 5 de noviembre de 2026.
 7. MDN. Set-Cookie. https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie
 8. Kelektiv. node.bcrypt.js. https://github.com/kelektiv/node.bcrypt.js
 9. OWASP. Password Storage Cheat Sheet. https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+
+10. OWASP. Cross-Site Request Forgery Prevention Cheat Sheet. https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html

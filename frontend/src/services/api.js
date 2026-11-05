@@ -1,22 +1,30 @@
-import { getToken, clearToken } from './session.js';
+import { sessionVersion, endSession } from './session.js';
 const BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/$/, '');
 async function request(path, options = {}) {
-  const token = getToken();
+  const version = sessionVersion();
+  const unsafe = !['GET', 'HEAD', 'OPTIONS'].includes(options.method || 'GET');
+  let csrfToken;
+  if (unsafe) {
+    const bootstrap = await fetch(`${BASE}/auth/csrf`, { credentials: 'include' });
+    if (!bootstrap.ok) throw new Error('No se pudo preparar la sesión. Intente nuevamente.');
+    csrfToken = (await bootstrap.json()).csrfToken;
+  }
   const publicAuth = ['/auth/login', '/auth/register'].includes(path);
   let response;
   try {
     response = await fetch(`${BASE}${path}`, {
       ...options,
+      credentials: 'include',
       headers: {
         ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-        ...(!publicAuth && token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
         ...options.headers,
       },
     });
   } catch {
     throw new Error('No se pudo conectar con el servidor. Compruebe que el backend esté iniciado.');
   }
-  if (response.status === 401 && !publicAuth) clearToken(token);
+  if (response.status === 401 && !publicAuth) endSession(version);
   if (response.status === 204) return null;
   let data;
   try {

@@ -1,16 +1,17 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { api } from '../services/api.js';
-import { getToken, saveToken, clearToken } from '../services/session.js';
+import { newSession, endSession, sessionVersion } from '../services/session.js';
 const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(getToken);
   const [usuario, setUsuario] = useState(null);
-  const [loading, setLoading] = useState(Boolean(token));
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [expiresAt, setExpiresAt] = useState(null);
   useEffect(() => {
     const end = () => {
-      setToken(null);
       setUsuario(null);
+      setExpiresAt(null);
+      setError('');
       setLoading(false);
     };
     window.addEventListener('cafe-nube:session-ended', end);
@@ -18,51 +19,49 @@ export function AuthProvider({ children }) {
   }, []);
   useEffect(() => {
     let active = true;
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError('');
+    const version = sessionVersion();
     api
       .get('/auth/me')
       .then((user) => {
-        if (active) setUsuario(user);
+        if (active && version === sessionVersion()) {
+          setUsuario(user);
+          setExpiresAt(user.expiresAt);
+        }
       })
       .catch((e) => {
-        if (active) {
-          setUsuario(null);
-          setError(e.status === 401 ? 'Su sesión terminó. Inicie sesión nuevamente.' : e.message);
-        }
+        if (active && e.status !== 401) setError(e.message);
       })
       .finally(() => {
         if (active) setLoading(false);
       });
-    let timer;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-      const ms = payload.exp * 1000 - Date.now();
-      timer = setTimeout(() => clearToken(token), Math.max(0, Math.min(ms, 2147483647)));
-    } catch {
-      clearToken(token);
-    }
     return () => {
       active = false;
-      clearTimeout(timer);
     };
-  }, [token]);
+  }, []);
+  useEffect(() => {
+    if (!expiresAt) return;
+    const version = sessionVersion();
+    const timer = setTimeout(
+      () => endSession(version),
+      Math.max(0, Math.min(Date.parse(expiresAt) - Date.now(), 2147483647)),
+    );
+    return () => clearTimeout(timer);
+  }, [expiresAt]);
   async function login(data) {
     const result = await api.create('/auth/login', data);
-    saveToken(result.token);
+    newSession();
     setUsuario(result.usuario);
-    setToken(result.token);
+    setExpiresAt(result.expiresAt);
+    setError('');
+    setLoading(false);
     return result.usuario;
   }
-  function logout() {
-    clearToken();
+  async function logout() {
+    await api.create('/auth/logout', {});
+    endSession();
   }
   return (
-    <AuthContext.Provider value={{ token, usuario, loading, error, login, logout }}>
+    <AuthContext.Provider value={{ usuario, loading, error, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -8,7 +8,7 @@
   "jsonwebtoken": "9.0.3",
   "prettier": "3.9.10",
   "api": {
-    "aprobadas": 24,
+    "aprobadas": 28,
     "fallidas": 0,
     "pruebas": [
       "el esquema implementa siete entidades y metadatos con FK y datos de ejemplo íntegros",
@@ -34,7 +34,11 @@
       "validación de registro rechaza contraseñas cortas, tipos y exceso de bytes UTF-8",
       "relaciones inexistentes dan 400 o 404 y las eliminaciones dependientes conservan 409",
       "migración actualiza el Día 1 y conserva IDs, importes y filas al repetirse",
-      "una base con tablas ajenas se rechaza antes de modificar su esquema"
+      "una base con tablas ajenas se rechaza antes de modificar su esquema",
+      "CSRF rechaza escritura sin token, alterada o con origen ajeno y acepta la sesión correcta",
+      "logout elimina cookies con el mismo alcance y deja el perfil sin autorización",
+      "registro y login también requieren comprobación CSRF",
+      "cookies con formato JSON inválido se rechazan sin provocar errores internos"
     ]
   },
   "interfaz": {
@@ -53,20 +57,25 @@
       "Catálogo móvil, filtro desde portada y vista previa de fotografía",
       "Ruta desconocida y regreso al inicio",
       "Cerrar sesión: cancelar, confirmar y proteger acceso",
-      "Token inválido: respuesta 401 limpia sesión y vuelve al login"
+      "Cookie inválida: respuesta 401 vuelve al login"
     ],
     "jsErrors": [],
     "assetErrors": [],
     "newmanExit": 0
   },
   "newman": {
-    "peticiones": {
-      "total": 47,
+    "casos": {
+      "total": 51,
+      "pending": 0,
+      "failed": 0
+    },
+    "peticiones_incluyendo_csrf": {
+      "total": 79,
       "pending": 0,
       "failed": 0
     },
     "comprobaciones": {
-      "total": 49,
+      "total": 54,
       "pending": 0,
       "failed": 0
     },
@@ -87,14 +96,17 @@
     "inspeccion_visual": true
   },
   "limites": [
-    "Pruebas en instancias aisladas con datos ficticios; no en el servidor del usuario.",
-    "Cierre de sesión local sin revocación remota de JWT.",
-    "No se implementan roles ni refresh tokens."
+    "Pruebas aisladas con MySQL real; no se accedió al servidor del usuario.",
+    "Sin revocación remota de copias externas del JWT.",
+    "La configuración local usa HTTP; HTTPS real de producción no se desplegó."
   ],
-  "postman_repetido": {
-    "iteraciones": 2,
-    "peticiones_aprobadas": 94,
-    "comprobaciones_aprobadas": 98,
-    "fallidas": 0
+  "sesion": {
+    "transporte": "Cookie HttpOnly",
+    "cookie": "cafe_nube_session",
+    "duracion_segundos": 3600,
+    "sameSite": "Lax por defecto",
+    "csrf": "HMAC ligado a la sesión en X-CSRF-Token",
+    "web_storage_jwt": false,
+    "secure": "Activado en producción/HTTPS; desactivado en HTTP local"
   }
 }

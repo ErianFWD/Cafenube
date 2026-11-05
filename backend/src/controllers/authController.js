@@ -1,3 +1,11 @@
+import { randomUUID } from 'node:crypto';
+import {
+  SESSION_COOKIE,
+  cookieOptions,
+  csrfFor,
+  csrfValue,
+  clearSessionCookies,
+} from '../utils/sessionCookies.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { objectBody, text, httpError } from '../utils/validation.js';
@@ -50,11 +58,29 @@ export function authController(db, config) {
         issuer: config.issuer,
         audience: config.audience,
         expiresIn: config.expiresIn,
+        jwtid: randomUUID(),
       });
-      res.set('Cache-Control', 'no-store').json({ token, usuario: publicUser(user) });
+      res.cookie(SESSION_COOKIE, token, {
+        ...cookieOptions(config),
+        maxAge: config.expiresIn * 1000,
+      });
+      const expiresAt = new Date(jwt.decode(token).exp * 1000).toISOString();
+      res
+        .set('Cache-Control', 'no-store')
+        .json({ usuario: publicUser(user), expiresAt, csrfToken: csrfFor(token, config) });
+    },
+    csrf(req, res) {
+      res.set('Cache-Control', 'no-store').json({ csrfToken: csrfValue(req, res, config) });
+    },
+    logout(_req, res) {
+      clearSessionCookies(res, config);
+      res.set('Cache-Control', 'no-store').status(204).end();
     },
     me(req, res) {
-      res.set('Cache-Control', 'no-store').json(publicUser(req.usuario));
+      res.set('Cache-Control', 'no-store').json({
+        ...publicUser(req.usuario),
+        expiresAt: new Date(req.sessionClaims.exp * 1000).toISOString(),
+      });
     },
   };
 }

@@ -1,3 +1,4 @@
+import { csrfMiddleware } from '../middleware/csrfMiddleware.js';
 import { authRoutes } from './authRoutes.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { Router } from 'express';
@@ -19,6 +20,7 @@ export function apiRoutes(db, auth) {
   router.get('/salud', (_req, res) => res.json({ ok: true }));
   router.use('/auth', authRoutes(db, auth));
   router.use(authMiddleware(db, auth));
+  router.use(csrfMiddleware(auth));
   router.get('/resumen', resumenController(db));
   for (const [path, entity] of [
     ['categorias', 'categorias'],

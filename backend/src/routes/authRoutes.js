@@ -1,3 +1,4 @@
+import { csrfMiddleware } from '../middleware/csrfMiddleware.js';
 import { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { authController } from '../controllers/authController.js';
@@ -14,6 +15,9 @@ export function authRoutes(db, config) {
       message: { error: 'Demasiados intentos. Intente de nuevo más tarde.' },
       skipSuccessfulRequests: true,
     });
+  router.get('/csrf', controller.csrf);
+  router.use(csrfMiddleware(config));
+  router.post('/logout', controller.logout);
   router.post('/register', limit(), controller.register);
   router.post('/login', limit(), controller.login);
   router.get('/me', authMiddleware(db, config), controller.me);

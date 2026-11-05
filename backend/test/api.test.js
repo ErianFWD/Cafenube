@@ -17,20 +17,29 @@ async function fixture(run, options = {}) {
   const server = instance.app.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const base = `http://127.0.0.1:${server.address().port}/api`;
-  let token = '';
-  async function request(method, path, body, extraHeaders = {}) {
+  const jar = new Map();
+  const cookieHeader = () => [...jar].map(([k, v]) => `${k}=${v}`).join('; ');
+  async function rawRequest(method, path, body, extraHeaders = {}) {
     const response = await fetch(base + path, {
       method,
       headers: {
         Origin: 'http://localhost:5173',
+        Cookie: cookieHeader(),
         ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...extraHeaders,
       },
       ...(body === undefined
         ? {}
         : { body: typeof body === 'string' ? body : JSON.stringify(body) }),
     });
+    for (const value of response.headers.getSetCookie()) {
+      const [pair] = value.split(';');
+      const i = pair.indexOf('=');
+      const name = pair.slice(0, i),
+        content = pair.slice(i + 1);
+      if (content) jar.set(name, content);
+      else jar.delete(name);
+    }
     const raw = await response.text();
     return {
       status: response.status,
@@ -38,19 +47,35 @@ async function fixture(run, options = {}) {
       headers: response.headers,
     };
   }
+  async function request(method, path, body, extraHeaders = {}) {
+    if (
+      !['GET', 'HEAD', 'OPTIONS'].includes(method) &&
+      !Object.hasOwn(extraHeaders, 'X-CSRF-Token')
+    ) {
+      const csrf = await rawRequest(
+        'GET',
+        '/auth/csrf',
+        undefined,
+        Object.hasOwn(extraHeaders, 'Cookie') ? { Cookie: extraHeaders.Cookie } : {},
+      );
+      extraHeaders = { 'X-CSRF-Token': csrf.body.csrfToken, ...extraHeaders };
+    }
+    return rawRequest(method, path, body, extraHeaders);
+  }
+  request.cookie = (name) => jar.get(name);
+  request.raw = rawRequest;
   try {
     await request('POST', '/auth/register', {
       nombre: 'Usuario prueba',
       correo: 'tester@example.test',
       password: 'Prueba_Cafe_2026',
     });
-    token = (
-      await request('POST', '/auth/login', {
-        correo: 'tester@example.test',
-        password: 'Prueba_Cafe_2026',
-      })
-    ).body.token;
-    assert.ok(token);
+    const login = await request('POST', '/auth/login', {
+      correo: 'tester@example.test',
+      password: 'Prueba_Cafe_2026',
+    });
+    assert.equal(login.status, 200);
+    assert.ok(jar.get('cafe_nube_session'));
     return await run(request, instance.db);
   } finally {
     server.closeAllConnections();
@@ -345,6 +370,7 @@ test('CORS permite los orígenes declarados y responde preflight sin autenticaci
   fixture(async (request) => {
     const ok = await request('GET', '/productos');
     assert.equal(ok.headers.get('access-control-allow-origin'), 'http://localhost:5173');
+    assert.equal(ok.headers.get('access-control-allow-credentials'), 'true');
     assert.match(ok.headers.get('vary'), /Origin/);
     const denied = await request('GET', '/productos', undefined, {
       Origin: 'https://no-permitido.example',
@@ -353,11 +379,11 @@ test('CORS permite los orígenes declarados y responde preflight sin autenticaci
     assert.equal(denied.headers.get('access-control-allow-origin'), null);
     const preflight = await request('OPTIONS', '/productos', undefined, {
       'Access-Control-Request-Method': 'POST',
-      'Access-Control-Request-Headers': 'content-type,authorization',
+      'Access-Control-Request-Headers': 'content-type,x-csrf-token',
     });
     assert.equal(preflight.status, 204);
     assert.match(preflight.headers.get('access-control-allow-methods'), /POST/);
-    assert.match(preflight.headers.get('access-control-allow-headers'), /Authorization/i);
+    assert.match(preflight.headers.get('access-control-allow-headers'), /X-CSRF-Token/i);
   }));
 
 test('JSON inválido, cuerpo excesivo y ruta desconocida dan respuestas controladas', () =>
@@ -494,7 +520,14 @@ test('registro, login y perfil usan hash bcrypt sin exponer contraseña', () =>
     });
     assert.equal(login.status, 200);
     assert.equal(login.body.usuario.password, undefined);
-    const decoded = jwt.verify(login.body.token, process.env.JWT_SECRET, {
+    assert.equal(login.body.token, undefined);
+    assert.ok(login.body.csrfToken);
+    const cookie = login.headers.getSetCookie().find((v) => v.startsWith('cafe_nube_session='));
+    assert.match(cookie, /HttpOnly/i);
+    assert.match(cookie, /SameSite=Lax/i);
+    assert.match(cookie, /Path=\/api/);
+    assert.match(cookie, /Max-Age=3600/);
+    const decoded = jwt.verify(request.cookie('cafe_nube_session'), process.env.JWT_SECRET, {
       algorithms: ['HS256'],
       issuer: 'cafe-nube-api',
       audience: 'cafe-nube-web',
@@ -503,7 +536,7 @@ test('registro, login y perfil usan hash bcrypt sin exponer contraseña', () =>
     assert.equal(decoded.password, undefined);
     assert.equal(decoded.sub, String(created.body.id));
     const me = await request('GET', '/auth/me', undefined, {
-      Authorization: 'Bearer ' + login.body.token,
+      Cookie: 'cafe_nube_session=' + request.cookie('cafe_nube_session'),
     });
     assert.equal(me.status, 200);
     assert.equal(me.body.id, created.body.id);
@@ -526,12 +559,12 @@ test('sin token se rechazan resumen, perfil y los cinco métodos de los seis CRU
         ['PUT', path + '/1', {}],
         ['DELETE', path + '/1'],
       ]) {
-        const result = await request(method, url, body, { Authorization: '' });
+        const result = await request(method, url, body, { Cookie: '' });
         assert.equal(result.status, 401, method + url);
         assert.deepEqual(result.body, { error: 'No autorizado' });
       }
     for (const path of ['/auth/me', '/resumen'])
-      assert.equal((await request('GET', path, undefined, { Authorization: '' })).status, 401);
+      assert.equal((await request('GET', path, undefined, { Cookie: '' })).status, 401);
   }));
 test('tokens vencidos, adulterados, con algoritmo o destinatario incorrecto dan 401', () =>
   fixture(async (request, db) => {
@@ -546,12 +579,13 @@ test('tokens vencidos, adulterados, con algoritmo o destinatario incorrecto dan 
     ];
     for (const token of invalid)
       assert.equal(
-        (await request('GET', '/productos', undefined, { Authorization: 'Bearer ' + token }))
+        (await request('GET', '/productos', undefined, { Cookie: 'cafe_nube_session=' + token }))
           .status,
         401,
       );
     assert.equal(
-      (await request('GET', '/productos', undefined, { Authorization: 'Basic abc' })).status,
+      (await request('GET', '/productos', undefined, { Cookie: '', Authorization: 'Bearer abc' }))
+        .status,
       401,
     );
   }));
@@ -641,4 +675,100 @@ test('una base con tablas ajenas se rechaza antes de modificar su esquema', () =
       ),
       before,
     );
+  }));
+
+test('CSRF rechaza escritura sin token, alterada o con origen ajeno y acepta la sesión correcta', () =>
+  fixture(async (request, db) => {
+    const before = await db.models.categorias.count();
+    for (const header of ['', 'a'.repeat(64)]) {
+      const result = await request.raw(
+        'POST',
+        '/categorias',
+        { nombre: 'No debe crearse' },
+        { 'X-CSRF-Token': header },
+      );
+      assert.equal(result.status, 403);
+    }
+    assert.equal(
+      (
+        await request(
+          'POST',
+          '/categorias',
+          { nombre: 'Origen ajeno' },
+          { Origin: 'https://malicioso.example' },
+        )
+      ).status,
+      403,
+    );
+    assert.equal(await db.models.categorias.count(), before);
+    const csrf = (await request('GET', '/auth/csrf')).body.csrfToken;
+    await request('POST', '/auth/login', {
+      correo: 'tester@example.test',
+      password: 'Prueba_Cafe_2026',
+    });
+    assert.equal(
+      (
+        await request.raw(
+          'POST',
+          '/categorias',
+          { nombre: 'Token de otra sesión' },
+          { 'X-CSRF-Token': csrf },
+        )
+      ).status,
+      403,
+    );
+    assert.equal(
+      (await request('POST', '/categorias', { nombre: 'Cookie y CSRF válidos' })).status,
+      201,
+    );
+  }));
+test('logout elimina cookies con el mismo alcance y deja el perfil sin autorización', () =>
+  fixture(async (request) => {
+    const result = await request('POST', '/auth/logout', {});
+    assert.equal(result.status, 204);
+    const cookies = result.headers.getSetCookie();
+    assert.equal(cookies.length, 2);
+    for (const cookie of cookies) {
+      assert.match(cookie, /Path=\/api/);
+      assert.match(cookie, /HttpOnly/);
+      assert.match(cookie, /Expires=Thu, 01 Jan 1970/);
+    }
+    assert.equal(request.cookie('cafe_nube_session'), undefined);
+    assert.equal((await request('GET', '/auth/me')).status, 401);
+  }));
+test('registro y login también requieren comprobación CSRF', () =>
+  fixture(async (request) => {
+    assert.equal(
+      (
+        await request.raw('POST', '/auth/login', {
+          correo: 'tester@example.test',
+          password: 'Prueba_Cafe_2026',
+        })
+      ).status,
+      403,
+    );
+    assert.equal(
+      (
+        await request.raw('POST', '/auth/register', {
+          nombre: 'Ajeno',
+          correo: 'ajeno@example.test',
+          password: 'Clave_segura_2026',
+        })
+      ).status,
+      403,
+    );
+  }));
+
+test('cookies con formato JSON inválido se rechazan sin provocar errores internos', () =>
+  fixture(async (request) => {
+    assert.equal(
+      (await request('GET', '/auth/me', undefined, { Cookie: 'cafe_nube_session=j:%7B%7D' }))
+        .status,
+      401,
+    );
+    const csrf = await request('GET', '/auth/csrf', undefined, {
+      Cookie: 'cafe_nube_session=j:%7B%7D',
+    });
+    assert.equal(csrf.status, 200);
+    assert.match(csrf.body.csrfToken, /^[a-f0-9]{64}$/);
   }));

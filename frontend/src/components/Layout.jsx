@@ -28,6 +28,19 @@ function savedVisibility() {
 export default function Layout() {
   const { usuario, logout } = useAuth();
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [logoutBusy, setLogoutBusy] = useState(false);
+  const [logoutError, setLogoutError] = useState('');
+  async function confirmLogout() {
+    setLogoutError('');
+    setLogoutBusy(true);
+    try {
+      await logout();
+    } catch (e) {
+      setLogoutError(e.message);
+    } finally {
+      setLogoutBusy(false);
+    }
+  }
   const [desktopVisible, setDesktopVisible] = useState(savedVisibility);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
@@ -114,13 +127,23 @@ export default function Layout() {
 
   return (
     <>
-      <Modal open={logoutOpen} title="Cerrar sesión" onClose={() => setLogoutOpen(false)}>
+      <Modal
+        open={logoutOpen}
+        title="Cerrar sesión"
+        busy={logoutBusy}
+        onClose={() => setLogoutOpen(false)}
+      >
         <p>¿Desea cerrar su sesión en Café Nube?</p>
+        {logoutError && (
+          <p role="alert" className="form-error">
+            {logoutError}
+          </p>
+        )}
         <div className="modal-actions">
           <button className="button secondary" onClick={() => setLogoutOpen(false)}>
             Cancelar
           </button>
-          <button className="button danger" onClick={logout}>
+          <button className="button danger" onClick={confirmLogout} disabled={logoutBusy}>
             Aceptar y cerrar sesión
           </button>
         </div>

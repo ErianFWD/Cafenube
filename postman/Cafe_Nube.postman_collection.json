@@ -40,21 +40,21 @@
   ],
   "item": [
     {
-      "name": "Autenticación Día 2",
+      "name": "Autenticación con cookies",
       "item": [
         {
-          "name": "Sin token rechaza productos",
+          "name": "Sin cookie rechaza perfil",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/productos",
+              "raw": "{{base_url}}/auth/me",
               "host": ["{{base_url}}"],
-              "path": ["productos"]
-            },
-            "auth": {
-              "type": "noauth"
+              "path": ["auth", "me"]
             }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
           },
           "event": [
             {
@@ -62,6 +62,27 @@
               "script": {
                 "type": "text/javascript",
                 "exec": ["pm.test('Estado 401',()=>pm.response.to.have.status(401));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Preparar CSRF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/csrf",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "csrf"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('Estado 200',()=>pm.response.to.have.status(200));"]
               }
             }
           ]
@@ -80,9 +101,6 @@
               "raw": "{{base_url}}/auth/register",
               "host": ["{{base_url}}"],
               "path": ["auth", "register"]
-            },
-            "auth": {
-              "type": "noauth"
             },
             "body": {
               "mode": "raw",
@@ -119,9 +137,6 @@
               "host": ["{{base_url}}"],
               "path": ["auth", "register"]
             },
-            "auth": {
-              "type": "noauth"
-            },
             "body": {
               "mode": "raw",
               "raw": "{\"nombre\": \"Postman Café Nube\", \"correo\": \"{{auth_correo}}\", \"password\": \"{{auth_password}}\"}",
@@ -137,10 +152,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": [
-                  "pm.test('Estado 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('No expone contraseña',()=>pm.expect(pm.response.json()).not.to.have.property('password'));"
-                ]
+                "exec": ["pm.test('Estado 201',()=>pm.response.to.have.status(201));"]
               }
             }
           ]
@@ -160,12 +172,9 @@
               "host": ["{{base_url}}"],
               "path": ["auth", "register"]
             },
-            "auth": {
-              "type": "noauth"
-            },
             "body": {
               "mode": "raw",
-              "raw": "{\"nombre\": \"Duplicado\", \"correo\": \"{{auth_correo}}\", \"password\": \"{{auth_password}}\"}",
+              "raw": "{\"nombre\": \"Postman Café Nube\", \"correo\": \"{{auth_correo}}\", \"password\": \"{{auth_password}}\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -198,9 +207,6 @@
               "host": ["{{base_url}}"],
               "path": ["auth", "login"]
             },
-            "auth": {
-              "type": "noauth"
-            },
             "body": {
               "mode": "raw",
               "raw": "{\"correo\": \"{{auth_correo}}\", \"password\": \"incorrecta\"}",
@@ -222,7 +228,7 @@
           ]
         },
         {
-          "name": "Iniciar sesión",
+          "name": "Iniciar sesión con cookie",
           "request": {
             "method": "POST",
             "header": [
@@ -235,9 +241,6 @@
               "raw": "{{base_url}}/auth/login",
               "host": ["{{base_url}}"],
               "path": ["auth", "login"]
-            },
-            "auth": {
-              "type": "noauth"
             },
             "body": {
               "mode": "raw",
@@ -256,7 +259,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Estado 200',()=>pm.response.to.have.status(200));",
-                  "pm.collectionVariables.set('token',pm.response.json().token);",
+                  "pm.test('JWT ausente del JSON',()=>pm.expect(pm.response.json()).not.to.have.property('token'));",
+                  "pm.test('Cookie HttpOnly',()=>pm.expect(pm.response.headers.all().filter(h=>h.key.toLowerCase()==='set-cookie').map(h=>h.value).join(';')).to.include('HttpOnly'));",
                   "pm.test('Usuario seguro',()=>pm.expect(pm.response.json().usuario).not.to.have.property('password'));"
                 ]
               }
@@ -285,7 +289,7 @@
           ]
         },
         {
-          "name": "Perfil sin token",
+          "name": "Perfil sin cookie",
           "request": {
             "method": "GET",
             "header": [],
@@ -293,10 +297,10 @@
               "raw": "{{base_url}}/auth/me",
               "host": ["{{base_url}}"],
               "path": ["auth", "me"]
-            },
-            "auth": {
-              "type": "noauth"
             }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
           },
           "event": [
             {
@@ -309,25 +313,23 @@
           ]
         },
         {
-          "name": "Token inválido",
+          "name": "Cookie inválida",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "cafe_nube_session=invalida"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/productos",
               "host": ["{{base_url}}"],
               "path": ["productos"]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "token-invalido",
-                  "type": "string"
-                }
-              ]
             }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
           },
           "event": [
             {
@@ -1288,17 +1290,106 @@
           ]
         }
       ]
+    },
+    {
+      "name": "CSRF y cierre de sesión",
+      "item": [
+        {
+          "name": "CSRF ausente rechaza escritura",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/categorias",
+              "host": ["{{base_url}}"],
+              "path": ["categorias"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\": \"No crear sin CSRF\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('Estado 403',()=>pm.response.to.have.status(403));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cerrar sesión",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('Estado 204',()=>pm.response.to.have.status(204));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil después de cerrar sesión",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('Estado 401',()=>pm.response.to.have.status(401));"]
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{token}}",
-        "type": "string"
-      }
-    ]
+    "type": "noauth"
   },
   "event": [
     {
@@ -1306,10 +1397,9 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "if (pm.info.requestName === 'Sin token rechaza productos') {",
-          "  pm.collectionVariables.set('auth_correo', 'cafe.' + pm.variables.replaceIn('{{$guid}}') + '@example.test');",
-          "  pm.collectionVariables.set('auth_password', 'Postman_Cafe_2026');",
-          "  pm.collectionVariables.unset('token');",
+          "if(pm.info.requestName==='Sin cookie rechaza perfil'){pm.collectionVariables.set('auth_correo','cafe.'+pm.variables.replaceIn('{{$guid}}')+'@example.test');pm.collectionVariables.set('auth_password','Postman_Cafe_2026');}",
+          "if(!['GET','HEAD','OPTIONS'].includes(pm.request.method)&&pm.info.requestName!=='CSRF ausente rechaza escritura'){",
+          "  pm.sendRequest({url:pm.variables.get('base_url')+'/auth/csrf',method:'GET'},(error,response)=>{if(error)throw error;pm.request.headers.upsert({key:'X-CSRF-Token',value:response.json().csrfToken});});",
           "}"
         ]
       }
